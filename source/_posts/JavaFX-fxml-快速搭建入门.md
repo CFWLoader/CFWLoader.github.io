@@ -18,4 +18,8 @@ categories: Java技术
 
 ## 创建项目
 
-待续...
+打开IDEA，创建项目，在如图左侧选择`JavaFX`，一直下一步，项目名一如既往为`test`:
+![](JavaFX-fxml-快速搭建入门/start_project.jpeg)
+
+然后IDEA就会根据模板给我们创建好项目:
+![](JavaFX-fxml-快速搭建入门/created_directory.jpeg)
