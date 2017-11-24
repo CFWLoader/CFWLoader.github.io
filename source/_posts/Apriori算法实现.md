@@ -5,6 +5,7 @@ tags:
 	- 数据挖掘
 	- python
 	- 算法实现
+    - 频繁模式挖掘
 categories: 数据挖掘
 ---
 
