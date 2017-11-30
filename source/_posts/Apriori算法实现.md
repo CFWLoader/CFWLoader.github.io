@@ -1,11 +1,11 @@
 ---
 title: Apriori算法实现
 date: 2017-11-20 22:33:59
-tags:
-	- 数据挖掘
-	- python
-	- 算法实现
-    - 频繁模式挖掘
+tags: 
+- 数据挖掘
+- python
+- 算法实现
+- 频繁模式挖掘
 categories: 数据挖掘
 ---
 

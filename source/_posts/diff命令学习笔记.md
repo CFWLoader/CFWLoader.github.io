@@ -2,9 +2,9 @@
 title: diff命令学习笔记
 date: 2017-11-17 19:00:58
 tags:
-	Linux
-	Linux命令
-	学习笔记
+	- Linux
+	- Linux命令
+	- 学习笔记
 categories: 系统运维
 ---
 
