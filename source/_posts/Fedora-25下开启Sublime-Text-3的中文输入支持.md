@@ -3,7 +3,9 @@ title: Fedora 25下开启Sublime Text 3的中文输入支持
 date: 2017-11-01 09:54:14
 tags:
 	- Sublime Text 3
-categories: 工具配置
+	- Fedora 25
+	- 工具配置
+categories: Linux
 ---
 
 因为之前一直没怎么使用Sublime Text 3做中文输入，没太在意这个部分，但是最近开始了写博客，总不可能一直写英文，Sublime又是我一直用来的编辑器，虽然有点麻烦，但是还是配置起来用。

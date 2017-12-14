@@ -5,7 +5,7 @@ tags:
 	- Linux
 	- Linux命令
 	- 学习笔记
-categories: 系统运维
+categories: Linux
 ---
 
 只要一直使用着Linux作为主要的工作操作系统，并且经常码代码的话，总有一天会用到`diff`命令，前面笔者太依赖于git环境了，以致于疏忽了学习这个命令，这段时间又用到了，于是记下来。

@@ -4,7 +4,9 @@ date: 2017-10-31 10:47:44
 tags: 
 	- github
 	- hexo
-categories: 工具配置
+	- 工具配置
+	- Fedora 25
+categories: Linux
 ---
 ## 需要的环境
 

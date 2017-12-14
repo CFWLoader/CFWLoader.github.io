@@ -6,7 +6,7 @@ tags:
 	- 系统调用
 	- 动态加载模块
 	- C
-categories: 系统运维
+categories: Linux
 ---
 
 ## 环境支持
