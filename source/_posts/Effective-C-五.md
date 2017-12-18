@@ -181,4 +181,40 @@ delete stringArray;
 
 ## 条款17:以独立语句将newed对象置入智能指针
 
-(待续)
+书上给了一个例子，也提供了具体的场景，函数原型如下:
+``` c++
+int priority();
+void processWidget(std::shared_ptr<Widget> pw, int priority);
+```
+有如下的调用:
+``` c++
+processWidget(std::shared_ptr<Widget>(new Widget), priority());
+```
+即使有`智能指针`的辅助，仍然不能根绝`内存泄漏`的问题，试想上述调用前可能会产生如下的构造:
+``` c++
+Widget* pw = new Widget();
+int prio = priority();
+std::shared_ptr spw(pw);
+```
+但是注意上述三行代码在原代码中是处于同一行的，也就是说，如果调用`proirity()`中出现了异常，导致了`std::shared_ptr`未构造，这时候显然`new`出来的对象就逃逸了。
+
+书上给出的建议，笔者认为一个是编程上的技巧，也是编程上的良好的习惯，代码如下:
+``` c++
+std::shared_ptr<Widget> pw(new Widget);
+
+processWidget(pw, priority());
+
+...
+```
+这样就不会因为`priority()`的失败导致一个原始的`Widget`对象脱离了管理，事实上在调用一个函数的时候，也尽量简化这个调用的表达式，又有如下一个假想例子:
+``` c++
+Type ret_val = func(
+	std::shared_ptr(new Object),
+	para1 == ANY_VALUE ? para1 : OTHER_VALUE,
+	func1(),
+	...
+);
+```
+这样一长串的调用，使得一个调用中的内容过于复杂，不方便后期维护审阅之外，其中任何一个参数的构造失败使得其它已经构造好的参数变得没有意义，也使对象不便于管理。
+
+这个条款一个是提供编程上的小技巧，笔者认为更加像是一个良好的编程习惯。
