@@ -151,6 +151,128 @@ Date d(Year(2017), Month(12), Day(19));
 
 ## 条款20:宁以pass-by-reference-to-const替换pass-by-value
 
+书上说得比较多，但是最后的原因是`以值传递`会导致一个新的对象被复制出来，而且严格按照函数接口的类型规定进行。用一个例子说明:
+``` c++
+class Base
+{
+public:
+	Base(string name_para = "base") : name(name_para)
+	{
+		cout << "Base::Base(this=" << this << ")" << endl;
+	}
+        // 在稍后的processVal函数中，涉及到复制构造，如果不重载复制构造函数，就看不到试验结果。
+	Base(const Base& rhs) : name(rhs.name)
+	{
+		cout << "Base::Base(this=" << this << ", &rhs=" << &rhs << ")" << endl;
+	}
+	virtual void display() const
+	{
+		cout << "(Base Object)" << name << endl;
+	}
+	virtual ~Base()
+	{
+		cout << "Base::~Base(" << this << ")" << endl;
+	}
+protected:
+	string name;	
+};
 
+class Derived : public Base
+{
+public:
+	Derived(string name_para = "base") : Base(name_para)
+	{
+		cout << "Derived::Derived(this=" << this << ")" << endl;
+	}
+        // Derived也需要重载作为对比。
+	Derived(const Derived& rhs) : Base(rhs)
+	{
+		cout << "Derived::Derived(this=" << this << ", &rhs=" << &rhs << ")" << endl;
+	}
+	virtual void display() const
+	{
+		cout << "(Derived Object)" << name << endl;
+	}
+	~Derived()
+	{
+		cout << "Derived::~Derived(" << this << ")" << endl;
+	}
+
+private:
+};
+
+void processVal(Base base)
+{
+	base.display();
+}
+
+// 不能重载processVal函数，否则因为重载决议推断一直使用Derived版，所以这里独立写出一个函数。
+void processDerVal(Derived derived)
+{
+        derived.display();
+}
+
+void processRef(const Base& base)
+{
+	base.display();
+}
+
+void processPtr(const Base* const base)
+{
+	base->display();
+}
+
+int main(int argc, char* argv[])
+{
+	Derived d;
+
+	cout << "----Process by Base value----" << endl;
+
+        processVal(d);
+
+        cout << "----Process by Derived value----" << endl;
+
+        processDerVal(d);
+
+	cout << "----Process by refernce----" << endl;
+
+	processRef(d);
+
+	cout << "----Process by pointer----" << endl;
+
+	processPtr(&d);
+
+	cout << "----All done----" << endl;
+
+	return 0;
+}
+```
+编译运行得到输出:
+``` text
+Base::Base(this=0x7ffce31ef230)
+Derived::Derived(this=0x7ffce31ef230)
+----Process by Base value----
+Base::Base(this=0x7ffce31ef290, &rhs=0x7ffce31ef230)
+(Base Object)base
+Base::~Base(0x7ffce31ef290)
+----Process by Derived value----
+Base::Base(this=0x7ffce31ef2c0, &rhs=0x7ffce31ef230)
+Derived::Derived(this=0x7ffce31ef2c0, &rhs=0x7ffce31ef230)
+(Derived Object)base
+Derived::~Derived(0x7ffce31ef2c0)
+Base::~Base(0x7ffce31ef2c0)
+----Process by refernce----
+(Derived Object)base
+----Process by pointer----
+(Derived Object)base
+----All done----
+Derived::~Derived(0x7ffce31ef230)
+Base::~Base(0x7ffce31ef230)
+```
+输出首尾是在`main`函数作用域，不需要关注，看到四个函数中，凡是以值传递的函数都调用了其传入参数对应的构造函数，新建出新的对象，并且造成了`切割(slicing)`现象。
+
+笔者认为切割现象只是以值传递造成的新对象被构造出来的附带现象，其主要原因还是该方式是复制新的对象进入函数作用域中。且不说切割的问题，若该函数被频繁调用，那么频繁的构造和析构也能带来客观的性能开销了，更不要说更大的对象的构造问题了。
+
+## 条款21:必须返回对象时，别妄想返回其reference
 
 (待续)
