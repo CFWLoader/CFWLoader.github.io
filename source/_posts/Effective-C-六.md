@@ -275,4 +275,131 @@ Base::~Base(0x7ffce31ef230)
 
 ## 条款21:必须返回对象时，别妄想返回其reference
 
-(待续)
+经过上个条款的学习之后，大部分初学者应该会不留余力地去除`pass-by-value`这样的使用，以至于一个函数的返回值都返回一个对象的引用。其实这也是初学者常犯的一个错误，但是一旦经过学习，这个编程习惯还是挺容易就记住的。这里面涉及到的主要的知识点无非是`变量的作用域`，或者说是`变量的生命周期`，看看上个条款中笔者给出的例子，分析得出:
+``` text
+在main构造一个Derived实例derived;
+        ---过渡带，保存一些当前上下文的信息，准备进入processVal函数上下文
+        以derived实例为原本复制一个Base实例，暂且变量名base;
+                ---进入processVal函数的作用域
+                调用base.display();
+                ---退出processVal作用域
+        析构base实例;
+        ---切换上下文，回到main
+...     //      涉及到以值传递的函数都会发生上述过程。
+在main中析构derived实例;
+```
+假设有个函数新建一个Base对象，并且返回其引用，原型如下:
+``` c++
+const Base& generateBase()
+{
+        Base base;
+        return base;
+}
+```
+并在main中使用:
+``` c++
+int main(int argc, char* argv[])
+{
+        generateBase().display();
+        return 0;
+}
+```
+幸运的话也许还能正常输出，不过基本上都是报错告终的了。
+
+把main像上面那样翻译一下:
+``` text
+        ---保存main上下文
+                ---进入generateBase函数作用域
+                构造一个Base实例;
+                析构这个Base实例;
+                返回这个Base实例的引用;
+                ---退出generateBase函数作用域
+        把返回的引用加入到main上下文;
+        ---切换回main的上下文
+调用这个返回的base对象的display函数
+```
+显然，`Base`对象已经被析构了，调用一个被析构的对象当然产生为定义的行为。
+
+记得被调用的函数的作用域肯定比调用该函数的函数的作用域段，那么被调用的函数里面的对象当然不能返回其引用给上一级了。
+
+这个时候要么乖乖地返回一个值，向性能效率妥协;要么就在堆上新建对象返回其指针，对自己的程序设计有信心的话，手动管理内存，幸好现在智能指针是标准库的一部分，也可以考虑考虑。
+
+## 条款22:将成员变量声明为private
+
+在学习过`Java`之后，笔者都忘了为何要这么设计一个类的。不过从书上看来，这个是前人总结出来的经验，如果不是对自己的项目设计能力特别有信心的话，循着经验来总不会错的。
+
+将成员变量设置为`private`，然后通过`getter`、`setter`的实现来控制好外部对该类内部成员变量的控制。前人的经验，虽然有时候会有些不方便，但是有个总体的原则在，程序就不会太乱了。
+
+## 条款23:宁以non-member、non-friend替换member函数
+
+对于该条款，笔者再次阅读的时候也没完全理解，不过大概的意思就是`过度封装`的问题，`面向对象`的设计思想确实很强大，也很好用，但是滥用也是会出问题的。也有可能有时候从业务逻辑上看，某个函数是某个对象的成员函数不太符合直观感觉;或者某个种行为对该模块里面的类通用，抽取出来变为一个通用的函数。
+
+其实这样的问题会在`Java`这类完全以对象为基础的语言中更加突出，例如库函数`sin`、`cos`等明明可以成为一个独立的函数，在`Java`中却必须定义在某个类中，哪怕是`static`也好。例如进行一次`sin`:
+``` java
+Math.sin(1);
+```
+而`C++`的`容器类`(vector, map, set等)和`算法库`(&lt;alogorithm&gt;)就是一个对抗过度封装的很好的例子，举一个`find`的例子:
+``` c++
+vector<int> vecCon;
+map<int,int> mapCon;
+vector<int>::iterator vIter = find(vecCon.begin(), vecCon.end(), 3);
+map<int,int>::iterator mIter = find(mapCon.begin(), mapCon.end(), make_pair(1, 3));
+```
+算法库中有不少这样的函数，对于每种容器类，其通用操作查找，添加等，如果为每个容器都写一次，那么代码的重复性就太高了，当然使用者会很感谢的。并且这样的操作本身也不会与容器中的类中的成员有绑定现象。
+
+其实归根结底还是写代码的人对与场景的分析。
+
+## 条款24:若所有参数皆需要类型转换，请为此采用non-member函数
+
+这个条款从书上的例子出发:
+``` c++
+class Rational          // 有理数类
+{
+public:
+        Rational(int numerator = 0, int denominator = 1);
+        int numerator() const;
+        int denominator() const;
+        const Rational operator* (const Rational& rhs) const;   // 用于支持有理数相乘
+private:
+        ...
+};
+```
+有如下的调用:
+``` c++
+Rational oneEight(1, 8);
+Rational oneHalf(1, 2);
+Rational result = onHalf * oneEight;    // ok
+result = oneHalf * 2;                   // ok
+result = 2 * oneHalf;                   // 编译不通过
+```
+对于第二个相乘，编译器产生如下代码:
+``` c++
+const Rational temp(2);
+result = oneHalf * temp;                // 调用Rational::operator*(const Rational& rhs);
+```
+但是对于数值`2`，起码`C++`没有为数值提供类定义，只是一个普通的数值，如果非得用面向对象来看的话那么第三个相乘操作调用的是:
+``` c++
+const Rational int::operator*(const Rational& rhs);
+```
+显然就算有`int`这个类，因为是内建类型，修改其定义是非常疯狂的行为。因为无法定义这个函数，编译器也无法获得`Rational`到`int`的隐式转换，当然编译不通过了。于是书上将相乘操作提出来成为一个独立的函数:
+``` c++
+const Rational operator*(const Ratinal& lhs, const Rational& rhs)
+{
+        return Rational(lhs.numerator() * rhs.numerator(), lhs.denominator() * rhs.denominator());
+}
+```
+这样原来的`2 * oneHalf`在`自动推导`中会得出:
+``` c++
+const Rational temp(2);
+result = temp * oneHalf;
+```
+完成隐式类型转换并推导出使用`const Rational operator*(const Ratinal& lhs, const Rational& rhs)`这个函数，编译通过。
+
+## 条款25:考虑写一个不抛异常的swap函数
+
+笔者对该条款没有什么特别的感受，所以简述书上的总结带过好了。
+
+1. 当std::swap对你的类型效率不高时，提供一个swap成员函数，并确定这个函数不抛出异常。
+1. 如果你提供一个member swap，也该提供一个non-member swap用来调用前者。对月classes(而非templates)，也请特化std::swap。
+1. 调用swap时应针对std::swap使用using声明式，然后调用swap并且不带任何“明明空间资格修饰”。
+1. 为“用户定义类型”进行std templates全特化是好的，但千万不要尝试在std内加入某些对std而言全新的东西。
