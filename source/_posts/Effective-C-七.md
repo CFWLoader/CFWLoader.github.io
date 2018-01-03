@@ -132,4 +132,89 @@ private:
 
 ## 条款29:为“异常安全”而努力是值得的
 
+正如这个系列刚开始，笔者探讨`C with class`的问题时提出的场景一样，如果程序动不动就要处理错误，那么为了处理这些错误，可以写出比原来为了满足需求而实现的代码长好几倍的代码。笔者尚未经历过`C++`老项目的维护，但是从其他项目的经验来看，异常处理这一部分并不会特别关注。一个是由于各种框架的出现，使得底层设施这种复用性高，又是关键部分的代码已经得到了很好的异常处理，而使用者仅仅处理业务层的代码，框架一般也提供了事务机制，这就使得使用者只需要在发生错误的时候回滚就行了;二是异常本来就不应该是频发的程序场景，如果一个程序中运行频繁地出现异常，要么就是运行环境太差，要么就是编程人员基础太差。
+
+不过为了满足程序的健壮性，一些异常处理仍然是必须的，但是要处理到何种程度，笔者也不能给出评价标准，毕竟笔者也见过没有任何异常处理的程序稳定运行的案例。如果是在实际项目中，功能的实现是第一目标，异常处理是辅助手段。
+
+书上定义了带有`异常安全性`的函数该有的行为，即异常被抛出的时候:
+1. 不泄漏任何资源。
+1. 不允许数据败坏。
+
+为了满足这两个行为，笔者给出socket编程中的经典例子:
+``` c++
+// Initialize server parameters.
+listenFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+
+bzero(&serverAddr, sizeof(serverAddr));
+
+serverAddr.sin_family = AF_INET;
+serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+serverAddr.sin_port = htons(SERVER_PORT);
+// Parameters set. Injecting the server parameters to system.
+
+bind(listenFileDescriptor, (sockaddr*) &serverAddr, sizeof(serverAddr));
+
+listen(listenFileDescriptor, LISTEN_QUEUE);
+// Server initialization finished.
+```
+里面的`socket`、`bind`、`listen`函数都有可能因为系统资源的不足而初始化失败，虽然这里没有用到`C++`的异常语法，但是也能代表为了满足异常处理要怎么写:
+``` c++
+// Initialize server parameters.
+listenFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+
+if(listenFileDescriptor < 0)
+{
+	//	可以输出一些错误提示。
+	return ERROR_CODE_SOCKET;	//	或者调用exit等。
+}
+
+bzero(&serverAddr, sizeof(serverAddr));
+
+serverAddr.sin_family = AF_INET;
+serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+serverAddr.sin_port = htons(SERVER_PORT);
+// Parameters set. Injecting the server parameters to system.
+
+int ret_val = bind(listenFileDescriptor, (sockaddr*) &serverAddr, sizeof(serverAddr));
+
+if(ret_val != 0)
+{
+	// 	错误提示。
+	close(listenFileDescriptor);	// 	因为初始化失败，要释放资源。
+	return ERROR_CODE_BIND;			// 	同理可以采用exit。
+}
+
+ret_val = listen(listenFileDescriptor, LISTEN_QUEUE);
+
+if(ret_val != 0)
+{
+	// 	错误提示。
+	close(listenFileDescriptor);	// 	因为初始化失败，要释放资源。
+	return ERROR_CODE_LISTEN;			// 	同理可以采用exit。
+}
+// Server initialization finished.
+```
+为了作出上述的两个保证，代码不得不变长。
+
+异常安全函数(Exception-safe functions)提供以下三个保证之一:
+1. `基本承诺`:如果异常被抛出，程序内的任何事物仍然保持在有效状态下。没有任何对象或数据结构会因此而败坏，所有对象都处于一中内部前后一致的状态。然而程序的现实状态(exact state)恐怕不可预料。
+1. `强烈保证`:如果异常被抛出，程序状态不改变。如果函数成功则完全成功，如果失败则回滚，具体例子可以看看上面`Server Socket`初始化。
+1. `不抛掷(nothrow)保证`:承诺绝不抛出异常，因为它们总是能够完成它们原先承诺的功能。作用于内置类型身上的所有操作都提供nothrow保证。
+
+看完了介绍的概念，笔者认为书上除了例子之外值得做笔记的地方就是`copy and swap`，具体方法是在作用于一个对象前先保存其副本，中途任何失败都放弃修改，返回修改前的对象副本。
+
+## 条款30:透彻了解inlining的里里外外
+
+关于该条款，笔者认为较为重要的是其:
+``` text
+inline只是对编译器的一个申请，不是强制命令。
+```
+也就是说给一个函数加上`inline`关键字修饰时，编译器视该修饰为一个建议，不一定会对其进行代码展开。
+
+同时滥用`inline`会导致代码膨胀，甚至造成比不加`inline`时的效率更低的可能。
+
+书上建议将大多数inlining限制在小型、被频繁调用的函数上。因为被`inline`牵涉的函数的调用者在进行二进制升级的时候也会被牵连着更行。
+
+## 条款31:将文件间的编译依存关系降至最低
+
 (待续)
