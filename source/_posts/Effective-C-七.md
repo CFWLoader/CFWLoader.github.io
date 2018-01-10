@@ -217,4 +217,123 @@ inline只是对编译器的一个申请，不是强制命令。
 
 ## 条款31:将文件间的编译依存关系降至最低
 
-(待续)
+有良好的编程习惯的程序员应该会习惯性地把一个类的声明以及其定义分开为两个文件。当类间呈现出`聚合`或者`组合`等关系时，被嵌入的类就要在包含它的类中声明，例如，设计一个基本的类:
+``` c++
+class Mem1
+{
+public:
+        Mem1();
+
+        void setIntMem(int val);
+
+        void setFloatMem(float val);
+
+        int getIntMem() const;
+
+        float getFloatMem() const;
+private:
+        int intMem;
+        float floatMem;
+};
+```
+然后外覆一个包裹器:
+``` c++
+class Wrapper
+{
+public:
+        Wrapper();
+
+        void setIntMem(int val);
+
+        void setFloatMem(float val);
+
+        int getIntMem() const;
+
+        float getFloatMem() const;
+private:
+
+        Mem1 mem1;
+};
+```
+这个`Wrapper`的声明文件里面没有用到`Mem1`这个类的任何方法和成员，但是必须得获取得到`Mem.h`里面的内容，也就是该头文件里面必须包含这个`Mem1`类的头文件。如果使用编译命令:
+``` bash
+$ g++ -E Wrapper
+```
+可以看到:
+``` text
+# 1 "Projects/ShallNotLiveLong/interlink/Wrapper.h"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+# 1 "<command-line>" 2
+# 1 "Projects/ShallNotLiveLong/interlink/Wrapper.h"
+# 1 "Projects/ShallNotLiveLong/interlink/Mem1.h" 1
+class Mem1
+{
+public:
+ Mem1();
+
+ void setIntMem(int val);
+
+ void setFloatMem(float val);
+
+ int getIntMem() const;
+
+ float getFloatMem() const;
+private:
+ int intMem;
+ float floatMem;
+};
+# 2 "Projects/ShallNotLiveLong/interlink/Wrapper.h" 2
+
+class Wrapper
+{
+public:
+ Wrapper();
+
+ void setIntMem(int val);
+
+ void setFloatMem(float val);
+
+ int getIntMem() const;
+
+ float getFloatMem() const;
+private:
+
+ Mem1 mem1;
+};
+```
+也就是说这个`Wrapper`的头文件需要读入整个`Mem1.h`的所有内容，然后再编译，当关系链很长的时候，处于末端的类的声明文件也就随之膨胀了。而且这个头文件里面也没有用到其包含的类的函数等接口。
+
+解决的方法是`前置声明`,也就是在该文件中先声明该类会包含那些类，但是不去获取其具体的声明(其实也可以叫类的定义，但是其成员函数没有定义，仅仅声明)。使用这个手法，则`Wrapper`的声明文件要这么写:
+``` c++
+class Mem1;
+
+class Wrapper
+{
+public:
+	Wrapper();
+
+	void setIntMem(int val);
+
+	void setFloatMem(float val);
+
+	int getIntMem() const;
+
+	float getFloatMem() const;
+private:
+
+	Mem1* mem1;
+};
+```
+<font color="red">注意</font>:一一旦开始使用`前置声明`，那么这个被声明的类在该头文件中的实例只能被声明为该类的<font color="red">指针变量</font>或者<font color="red">引用</font>，否则该头文件仍然会要求读取被包含的类的定义。
+
+施用该手法之后，使用`g++ -E Wrapper.h`命令输出看展开后的文件，发现`Mem1`类的声明内容消失了，成功地把具体的内容向后移至`实现文件`以及`链接期`中。
+
+注意对于标准库，例如`std::string`等就不要吝啬这点编译空间了，一个是`std::string`是一个`typedef`而不是;第二是这个是标准库的内容，性能是经过考验的，要担心的还是自己的实现部分。
+
+该手法的缺点也存在的，第一点当然是指针的使用使得实现者不得不手动管理内存，或者引入智能指针等来管理这些动态分配的内容。
+
+这个条款后面也有介绍与这个手法组合起来相关的内容，例如`接口与实现分离`、`代理类`等与`设计模式`相关的概念，在这里就先不展开介绍了。
+
+总的来说，这个条款推荐的是用`声明式`取代`定义式`，使得编译的依存性最小化，同时也有避免编译出来的二进制文件发生不必要的代码膨胀的作用。
