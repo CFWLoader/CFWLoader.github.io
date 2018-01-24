@@ -606,4 +606,29 @@ void advance(IterT iter, DistT d,)
 
 ## 条款48:认识template元编程
 
-(待续)
+`模板元编程(Template Metaprogramming,TMP)`是在`编译期`将运算完成，以此减少在运行时的运算，但是滥用`模板`也会导致`代码膨胀`。[更多的详细介绍](https://en.wikipedia.org/wiki/Template_metaprogramming)
+
+在给出例子之前首先说明`模板元编程`里面的循环是用`递归`进行模拟的，读者也可以回想到模板里面没有直接支持模板循环的语法。
+
+来一个阶乘计算的例子:
+``` c++
+template<unsigned n>
+struct Factorial 
+{
+	enum { value = n * Factorial<n-1>::value };		// f(n) = n * f(n-1)递归完成n*(n-1)*(n-2)*...*1的模拟
+};
+
+template<>
+struct Factorial<0>		// 递归终止条件
+{
+	enum { value = 1 };
+};
+```
+然后写下:
+``` c++
+cout << Factorial<5>::value << endl;		// 5!
+cout << Factorial<10>::value << endl; 		// 10!
+```
+即可得到结果，当然TMP可以做更多的事情，但是也很考验程序员的设计能力。要是这么简单的话，TMP早就因其强大的编译期优化而流行了。
+
+因此该条款也只是简单地介绍TMP，有兴趣的读者可以在网上搜索到更多的TMP奇淫技巧。
