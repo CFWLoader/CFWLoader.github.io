@@ -124,3 +124,5 @@ LD_PRELOAD=/opt/sublime-text/libsublime-imfix.so
 ``` code
 LD_PRELOAD=/opt/sublime-text/libsublime-imfix.so
 ```
+
+笔者最近将系统更新到了`Fedora 27`，上述的配置已经无效了，尝试了网上一些方法之后最终放弃了，更改为用`iBus`+`VSCode`方案，目前流畅使用中。
