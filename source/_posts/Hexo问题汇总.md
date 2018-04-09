@@ -25,3 +25,21 @@ npm install hexo-renderer-kramed --save
 ```
 
 更多详细的解决方案细节，观看[源博客](https://www.cnblogs.com/Ai-heng/p/7282110.html)。
+
+## 插入图片
+
+貌似`Markdown`原生的语法不起作用，若用其他方案则因为部署到`github.io`时不会自动翻译`url`，即使成功部署图片也会崩掉。
+
+使用命令装上该插件：
+``` bash
+$ npm install hexo-asset-image --save
+```
+
+然后可以：
+``` markdown
+![图片的标题](${图片相对于该文件的路径或者绝对路径})
+```
+
+然后正常在本地，抑或部署都没有问题了。
+
+解决方案[源地址](https://www.tuicool.com/articles/umEBVfI)。
