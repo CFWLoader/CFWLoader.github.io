@@ -2,7 +2,6 @@
 title: Linux Socket编程基础
 date: 2018-02-27 11:27:43
 tags:
-	- 网络通信
     - TCP
     - Linux
     - C
