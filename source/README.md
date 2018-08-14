@@ -9,4 +9,3 @@ Here is the [link](https://cfwloader.github.io).
 - 样本方差计算式分母为`(n-1)`,[解释](https://www.zhihu.com/question/20099757/answer/312670291)
 - 最大似然估计
 - 拉格朗日乘子法
-- ~~如何阅读`boost`源码~~
