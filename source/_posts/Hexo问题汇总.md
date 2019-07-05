@@ -26,13 +26,15 @@ npm install hexo-renderer-kramed --save
 
 更多详细的解决方案细节，观看[源博客](https://www.cnblogs.com/Ai-heng/p/7282110.html)。
 
+因为笔者博客主题使用的[Landscape-Plus](https://github.com/xiangming/landscape-plus)，在依据其主页指引进行安装之后，需要修改`${博客根目录}/themes/landscape-plus/_config.yml`中的`mathjax`选项开关，否则博客内的公式无法正确渲染。
+
 ## 插入图片
 
 貌似`Markdown`原生的语法不起作用，若用其他方案则因为部署到`github.io`时不会自动翻译`url`，即使成功部署图片也会崩掉。
 
 使用命令装上该插件：
 ``` bash
-$ npm install hexo-asset-image --save
+$ npm install https://github.com/CodeFalling/hexo-asset-image --save # 注1
 ```
 
 然后可以：
@@ -43,3 +45,5 @@ $ npm install hexo-asset-image --save
 然后正常在本地，抑或部署都没有问题了。
 
 解决方案[源地址](https://www.tuicool.com/articles/umEBVfI)。
+
+[注1]笔者在最近一次在新机子配置博客开发的环境时，发现直接使用`npm install hexo-asset-image --save`安装的插件不能正确更新图片的URL，因此改用以上的命令。
