@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>FP-growth算法实现 | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="之前实现了Apriori算法(Apriori算法实现)，但是该算法存在着不少的算法性能缺陷，例如光是产生候选集都有这么多，加上用了平凡方式实现的原因，存储候选集产生了不少额外的内存使用。而FP-growth中的FP-tree则是用于压缩这些候选集的存储空间，候选集间会共享相同的元素。例如{A,B,C}和{A,B,D}，在Apriori中是单独的记录，而在FP-growth中用树存储，它们会共享{A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FP-growth算法实现">
+<meta property="og:url" content="https://cfwloader.github.io/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="之前实现了Apriori算法(Apriori算法实现)，但是该算法存在着不少的算法性能缺陷，例如光是产生候选集都有这么多，加上用了平凡方式实现的原因，存储候选集产生了不少额外的内存使用。而FP-growth中的FP-tree则是用于压缩这些候选集的存储空间，候选集间会共享相同的元素。例如{A,B,C}和{A,B,D}，在Apriori中是单独的记录，而在FP-growth中用树存储，它们会共享{A">
+<meta property="og:locale" content="zh_ZN">
+<meta property="og:image" content="https://cfwloader.github.io/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree1.jpg">
+<meta property="og:image" content="https://cfwloader.github.io/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree2.jpg">
+<meta property="og:image" content="https://cfwloader.github.io/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree.jpg">
+<meta property="article:published_time" content="2017-11-23T03:20:06.000Z">
+<meta property="article:modified_time" content="2024-06-17T03:11:12.090Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="数据挖掘">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="算法实现">
+<meta property="article:tag" content="频繁模式挖掘">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cfwloader.github.io/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree1.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-FP-growth算法实现" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" class="article-date">
+  <time class="dt-published" datetime="2017-11-23T03:20:06.000Z" itemprop="datePublished">2017-11-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      FP-growth算法实现
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>之前实现了<code>Apriori</code>算法(<a href="/2017/11/20/Apriori%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" title="Apriori算法实现">Apriori算法实现</a>)，但是该算法存在着不少的算法性能缺陷，例如光是产生候选集都有这么多<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.777ex;" xmlns="http://www.w3.org/2000/svg" width="8.316ex" height="2.949ex" role="img" focusable="false" viewbox="0 -960 3675.6 1303.3"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="munderover"><g data-mml-node="mo"><path data-c="2211" d="M61 748Q64 750 489 750H913L954 640Q965 609 976 579T993 533T999 516H979L959 517Q936 579 886 621T777 682Q724 700 655 705T436 710H319Q183 710 183 709Q186 706 348 484T511 259Q517 250 513 244L490 216Q466 188 420 134T330 27L149 -187Q149 -188 362 -188Q388 -188 436 -188T506 -189Q679 -189 778 -162T936 -43Q946 -27 959 6H999L913 -249L489 -250Q65 -250 62 -248Q56 -246 56 -239Q56 -234 118 -161Q186 -81 245 -11L428 206Q428 207 242 462L57 717L56 728Q56 744 61 748Z"/></g><g data-mml-node="TeXAtom" transform="translate(1089,477.1) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D43E" d="M285 628Q285 635 228 637Q205 637 198 638T191 647Q191 649 193 661Q199 681 203 682Q205 683 214 683H219Q260 681 355 681Q389 681 418 681T463 682T483 682Q500 682 500 674Q500 669 497 660Q496 658 496 654T495 648T493 644T490 641T486 639T479 638T470 637T456 637Q416 636 405 634T387 623L306 305Q307 305 490 449T678 597Q692 611 692 620Q692 635 667 637Q651 637 651 648Q651 650 654 662T659 677Q662 682 676 682Q680 682 711 681T791 680Q814 680 839 681T869 682Q889 682 889 672Q889 650 881 642Q878 637 862 637Q787 632 726 586Q710 576 656 534T556 455L509 418L518 396Q527 374 546 329T581 244Q656 67 661 61Q663 59 666 57Q680 47 717 46H738Q744 38 744 37T741 19Q737 6 731 0H720Q680 3 625 3Q503 3 488 0H478Q472 6 472 9T474 27Q478 40 480 43T491 46H494Q544 46 544 71Q544 75 517 141T485 216L427 354L359 301L291 248L268 155Q245 63 245 58Q245 51 253 49T303 46H334Q340 37 340 35Q340 19 333 5Q328 0 317 0Q314 0 280 1T180 2Q118 2 85 2T49 1Q31 1 31 11Q31 13 34 25Q38 41 42 43T65 46Q92 46 125 49Q139 52 144 61Q147 65 216 339T285 628Z"/></g></g><g data-mml-node="TeXAtom" transform="translate(1089,-285.4) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"/></g><g data-mml-node="mo" transform="translate(345,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"/></g><g data-mml-node="mn" transform="translate(1123,0)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"/></g></g></g><g data-mml-node="msubsup" transform="translate(2453.3,0)"><g data-mml-node="mi"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"/></g><g data-mml-node="mi" transform="translate(845.3,363) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"/></g><g data-mml-node="mi" transform="translate(748,-247) scale(0.707)"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"/></g></g></g></g></svg></mjx-container>，加上用了平凡方式实现的原因，存储候选集产生了不少额外的内存使用。而<code>FP-growth</code>中的<code>FP-tree</code>则是用于压缩这些候选集的存储空间，候选集间会共享相同的元素。例如<code>{A,B,C}</code>和<code>{A,B,D}</code>，在<code>Apriori</code>中是单独的记录，而在<code>FP-growth</code>中用树存储，它们会共享<code>{A,B}</code>这个父节点，然后产生<code>{C}</code>和<code>{D}</code>两个子节点，当模式越长的时候，这种压缩方法带来的存储开销优化越明显。</p>
+<p>当然为了能够构造这样的树，还要设计额外的算法构建这棵树，一旦<code>FP-tree</code>构建了起来，检索方式就特别方便了，这个例子是典型的牺牲算法复杂度换取存储复杂度的例子。</p>
+<h2 id="样例数据集"><a href="#样例数据集" class="headerlink" title="样例数据集"></a>样例数据集</h2><p><code>FP-growth</code>算法过程比<code>Apriori</code>还复杂，需要用一个例子来引导学习者。这里用的是《数据挖掘概念与技术》中的例子。</p>
+<table>
+<thead>
+<tr>
+<th align="center">单号</th>
+<th align="center">购物清单</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">T100</td>
+<td align="center">I1,I2,I5</td>
+</tr>
+<tr>
+<td align="center">T200</td>
+<td align="center">I2,I4</td>
+</tr>
+<tr>
+<td align="center">T300</td>
+<td align="center">I2,I3</td>
+</tr>
+<tr>
+<td align="center">T400</td>
+<td align="center">I1,I2,I4</td>
+</tr>
+<tr>
+<td align="center">T500</td>
+<td align="center">I1,I3</td>
+</tr>
+<tr>
+<td align="center">T600</td>
+<td align="center">I2,I3</td>
+</tr>
+<tr>
+<td align="center">T700</td>
+<td align="center">I1,I3</td>
+</tr>
+<tr>
+<td align="center">T800</td>
+<td align="center">I1,I2,I3,I5</td>
+</tr>
+<tr>
+<td align="center">T900</td>
+<td align="center">I1,I2,I3</td>
+</tr>
+</tbody></table>
+<h2 id="生成FP-tree"><a href="#生成FP-tree" class="headerlink" title="生成FP-tree"></a>生成FP-tree</h2><p>第一步与<code>Apriori</code>一样，根据最小支持度产生<code>1</code>项集。按照上述的样例数据，可产生:</p>
+<table>
+<thead>
+<tr>
+<th align="center">项集</th>
+<th align="center">支持度计数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">{I1}</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td align="center">{I2}</td>
+<td align="center">7</td>
+</tr>
+<tr>
+<td align="center">{I3}</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td align="center">{I4}</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="center">{I5}</td>
+<td align="center">2</td>
+</tr>
+</tbody></table>
+<p>但是<code>FP-growth</code>在此开始就不产生<code>2</code>以上的候选集了。首先按照频数给频繁集排序:{I2:7, I1:6, I3:6, I4:2, I5:2}。以<code>null</code>创建<code>FP-tree</code>的根。</p>
+<p>随后扫描每条事务，按照排过序的频繁集读入一条事务。例如读入<code>T100</code>将产生:<br><img src="/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree1.jpg"></p>
+<p>再读入<code>T200</code>:<br><img src="/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree2.jpg"></p>
+<p>这样，两条事务就共享了一个前缀<code>T2</code>，通过同样的方法，最终构建出一棵<code>FP-tree</code>:<br><img src="/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/fp_tree.jpg"></p>
+<p>左边的表用于记录频繁集散布在树的位置。</p>
+<p>这样生成树之后，只要从树的叶子节点开始，或者从根节点开始，只要设定好支持度阈值或其他参数，都能频繁树中获得目标模式。</p>
+<h2 id="伪代码"><a href="#伪代码" class="headerlink" title="伪代码"></a>伪代码</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">算法 FP-Growth。使用FP树，通过模式增长挖掘频繁模式。</span><br><span class="line">输入:</span><br><span class="line">	D: 事务数据库。</span><br><span class="line">	min_sup: 最小支持度阈值。</span><br><span class="line">输出:</span><br><span class="line">	频繁模式的完全集。</span><br><span class="line">方法:</span><br><span class="line">1.按以下步骤构造FP树:</span><br><span class="line">	(a)扫描事务数据库D一次。收集频繁项集的集合F和它们的支持度计数。对F按支持度计数降序排序，结果为频繁项列表L。</span><br><span class="line">	(b)创建FP树的根节点，以"null"标记它。对于D中每个事务Trans，执行:</span><br><span class="line">	   选择Trans中的频繁项，并按L中的次序排序。设Trans排序后的频繁项列表为[p|P]，其中p是第一个元素，而P是剩余元素的列表。调用insert_tree([p|P], T)。该过程执行情况如下。如果T有子女N使得N.item-name=p.item-name，则N的计数增加1;否则，创建一个新结点N，将其计数设置为1,链接到它的父结点T,并且通过结点链结构将其链接到具有相同item-name的结点。如果P非空，则递归地调用insert_tree(P,N)。</span><br><span class="line">2.FP树的挖掘通过调用FP_growth(FP_tree, null)实现。该实现过程如下。</span><br><span class="line">	procedure FP_growth(Tree, α)</span><br><span class="line">		if Tree 包含单个路径 P then</span><br><span class="line">			for 路径 P 中结点的每个组合(记作β)</span><br><span class="line">				产生模式α ∪ β，其支持度计数support_count等于β中结点的最小支持度计数;</span><br><span class="line">		else</span><br><span class="line">			for Tree的表头的每个ai</span><br><span class="line">			{</span><br><span class="line">				产生一个模式β = α ∪ ai，其支持度技术support_count=ai.support_count;</span><br><span class="line">				构造β的条件模式基，然后构造β的条件FP树Treeβ;</span><br><span class="line">				if Treeβ！=Empty Set then</span><br><span class="line">					调用FP_growth(Treeβ, β);</span><br><span class="line">			}</span><br></pre></td></tr></table></figure>
+
+<h2 id="Python实现"><a href="#Python实现" class="headerlink" title="Python实现"></a>Python实现</h2><p>先从定义<code>FpTreeNode</code>开始:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FpTreeNode</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, layer, node_tag=<span class="string">''</span>, val=<span class="number">0</span>, parent=<span class="literal">None</span>, child_list=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="keyword">if</span> child_list <span class="keyword">is</span> <span class="literal">None</span>:					<span class="comment"># 有不定个子结点。</span></span><br><span class="line">            child_list = []</span><br><span class="line"></span><br><span class="line">        self.layer = layer</span><br><span class="line"></span><br><span class="line">        self.node_tag = node_tag</span><br><span class="line"></span><br><span class="line">        self.val = val</span><br><span class="line"></span><br><span class="line">        self.parent = parent</span><br><span class="line"></span><br><span class="line">        self.child_list = child_list</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">increase_val</span>(<span class="params">self, inc_val=<span class="number">1</span></span>):</span><br><span class="line">        self.val += inc_val</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">add_child_node</span>(<span class="params">self, child_node</span>):</span><br><span class="line">        self.child_list.append(child_node)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__str__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">'Node Name: %s, Value: %d'</span> % (self.node_tag, self.val)</span><br></pre></td></tr></table></figure>
+<p>然后定义<code>FpTree</code>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FpTree</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, fre_list</span>):</span><br><span class="line">        self.root = FpTreeNode(layer=<span class="number">0</span>, node_tag=<span class="string">'null'</span>)	<span class="comment"># 根结点。</span></span><br><span class="line"></span><br><span class="line">        self.fre_list = fre_list</span><br><span class="line"></span><br><span class="line">        self.lnk_tbl = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">rearrange_ptn_as_fre_list</span>(<span class="params">self, ptn</span>):				<span class="comment"># 对进来的记录按照频繁集中的顺序重新排列。</span></span><br><span class="line"></span><br><span class="line">        rearranged_record = []</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (key, val) <span class="keyword">in</span> self.fre_list:</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> key <span class="keyword">in</span> ptn:</span><br><span class="line"></span><br><span class="line">                rearranged_record.append(key)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> rearranged_record</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">absorb_pattern</span>(<span class="params">self, ptn, cnt</span>):						<span class="comment"># 处理进来的一条记录。</span></span><br><span class="line"></span><br><span class="line">        tree_iter = self.root</span><br><span class="line"></span><br><span class="line">        layer_count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        ptn = self.rearrange_ptn_as_fre_list(ptn)			<span class="comment"># 排序。</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> ele <span class="keyword">in</span> ptn:</span><br><span class="line"></span><br><span class="line">            next_node = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> child_node <span class="keyword">in</span> tree_iter.child_list:			<span class="comment"># 查找前缀是否已存在。</span></span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> child_node.node_tag == ele:</span><br><span class="line"></span><br><span class="line">                    child_node.increase_val(cnt)			<span class="comment"># 存在则直接增加结点的计数值。</span></span><br><span class="line"></span><br><span class="line">                    next_node = child_node</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> next_node <span class="keyword">is</span> <span class="literal">None</span>:							<span class="comment"># 需要产生新的结点。</span></span><br><span class="line"></span><br><span class="line">                next_node = FpTreeNode(layer=layer_count + <span class="number">1</span>, node_tag=ele, val=cnt, parent=tree_iter)</span><br><span class="line"></span><br><span class="line">                tree_iter.add_child_node(next_node)			<span class="comment"># 增加子结点。</span></span><br><span class="line"></span><br><span class="line">            tree_iter = next_node							<span class="comment"># 进入子结点。</span></span><br><span class="line"></span><br><span class="line">            layer_count += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">gen_link_tbl</span>(<span class="params">self</span>):									<span class="comment"># 产生FP树的时候，需要记录频繁集结点的分布。</span></span><br><span class="line"></span><br><span class="line">        link_tbl = {}										<span class="comment"># 以便快速检索。</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (key, val) <span class="keyword">in</span> self.fre_list:</span><br><span class="line"></span><br><span class="line">            link_tbl[key] = [val]</span><br><span class="line"></span><br><span class="line">        queue = []</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> node <span class="keyword">in</span> self.root.child_list:</span><br><span class="line"></span><br><span class="line">            queue.append(node)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> <span class="built_in">len</span>(queue) &gt; <span class="number">0</span>:								<span class="comment"># BFS遍历。</span></span><br><span class="line"></span><br><span class="line">            node = queue[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">            queue.pop(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> child_node <span class="keyword">in</span> node.child_list:</span><br><span class="line"></span><br><span class="line">                queue.append(child_node)</span><br><span class="line"></span><br><span class="line">            link_tbl[node.node_tag].append(node)			<span class="comment"># 添加结点位置记录，用item ID作为字典的关键字。</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> link_tbl</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">gen_prefix_paths</span>(<span class="params">self, key, update_lnk_tbl=<span class="literal">False</span></span>):	<span class="comment"># 产生前缀路径。</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> self.lnk_tbl <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span> update_lnk_tbl:			<span class="comment"># 获得频繁集中的结点分布。</span></span><br><span class="line"></span><br><span class="line">            self.lnk_tbl = self.gen_link_tbl()</span><br><span class="line"></span><br><span class="line">        prefix_paths = {}</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> node <span class="keyword">in</span> self.lnk_tbl[key][<span class="number">1</span>::]:					<span class="comment"># 链表中第一个元素是频繁集支持度，所以索引从1开始。</span></span><br><span class="line"></span><br><span class="line">            node_iter = node.parent 						<span class="comment"># 自下向上获取前缀。</span></span><br><span class="line"></span><br><span class="line">            prefix_path = <span class="built_in">set</span>()</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> node_iter.node_tag != <span class="string">'null'</span>:</span><br><span class="line"></span><br><span class="line">                prefix_path.add(node_iter.node_tag)</span><br><span class="line"></span><br><span class="line">                node_iter = node_iter.parent</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">len</span>(prefix_path) &gt; <span class="number">0</span>: prefix_paths[<span class="built_in">frozenset</span>(prefix_path)] = node.val 	<span class="comment"># 路径的支持度是路径中的结点的最小支持度。如果路径存在频繁项，则添加到结果中。</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> prefix_paths</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">is_empty</span>(<span class="params">self</span>):</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span> <span class="keyword">if</span> <span class="built_in">len</span>(self.root.child_list) &lt; <span class="number">1</span> <span class="keyword">else</span> <span class="literal">False</span></span><br></pre></td></tr></table></figure>
+<p>生成<code>FP-Tree</code>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">gen_fp_tree</span>(<span class="params">dataset, min_sup=<span class="number">1</span></span>):</span><br><span class="line"></span><br><span class="line">    frequent_list = find_frequent_1_itemsets(dataset, min_sup)			<span class="comment"># 产生1频繁项集。</span></span><br><span class="line"></span><br><span class="line">    frequent_list = <span class="built_in">sorted</span>(frequent_list.items(), key=<span class="keyword">lambda</span> d: d[<span class="number">1</span>], reverse=<span class="literal">True</span>)	<span class="comment"># 降序排序。</span></span><br><span class="line"></span><br><span class="line">    fp_tree = FpTree(frequent_list)										<span class="comment"># 注入到树中。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> record, cnt <span class="keyword">in</span> data_set.items():								<span class="comment"># 把事务数据注入到树中，挖掘频繁模式。</span></span><br><span class="line"></span><br><span class="line">        fp_tree.absorb_pattern(record, cnt)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> fp_tree</span><br></pre></td></tr></table></figure>
+<p>生成了树之后，就可以调用<code>FP_growth</code>生成频繁模式了:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">FP_growth</span>(<span class="params">fp_tree, min_sup=<span class="number">1</span>, prefix=<span class="literal">None</span>, fre_item_list=<span class="literal">None</span></span>):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> fre_item_list <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line"></span><br><span class="line">        fre_item_list = {}</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> prefix <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line"></span><br><span class="line">        prefix = <span class="built_in">set</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> base_ptn, val <span class="keyword">in</span> fp_tree.fre_list:			<span class="comment"># 自上向下扫描FP-tree。</span></span><br><span class="line"></span><br><span class="line">        new_fre_set = prefix.copy()					<span class="comment"># 前缀也按一层一层地增长。</span></span><br><span class="line"></span><br><span class="line">        new_fre_set.add(base_ptn)					<span class="comment"># 以上一层生成的前缀为基础。</span></span><br><span class="line"></span><br><span class="line">        fre_item_list[<span class="built_in">frozenset</span>(new_fre_set)] = val 	<span class="comment"># 设置该频繁项集的支持度。</span></span><br><span class="line"></span><br><span class="line">        cond_ptn_bases = fp_tree.gen_prefix_paths(base_ptn)	<span class="comment"># 生成前缀路径。</span></span><br><span class="line"></span><br><span class="line">        cond_fp_tree = gen_fp_tree(cond_ptn_bases, min_sup) <span class="comment"># 生成条件模式树。</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> cond_fp_tree.is_empty():						<span class="comment"># 递归子结点。</span></span><br><span class="line"></span><br><span class="line">            FP_growth(cond_fp_tree, min_sup, new_fre_set, fre_item_list)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> fre_item_list</span><br></pre></td></tr></table></figure>
+<p>代码中涉及到的数据加载以及产生<code>1</code>频繁项集的代码都与<a href="/2017/11/20/Apriori%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" title="Apriori算法实现">Apriori算法实现</a>一致，故本文就没有写上。</p>
+<p>在这里要说明的是，在递归向下的时候，条件模式树会被不断地生成，以及生成去掉了前缀元素后的子树，因为暂时没有办法解决在不生成新的条件模式树的情况下，让下一层递归能够正确处理更新后的数据。所以笔者这里是一个可以优化的地方。</p>
+<p>至此，<code>FP-growth</code>实现完毕。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" data-id="clximfz6n00107kkv8pfudr6d" data-title="FP-growth算法实现" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/11/24/Linux%E5%8A%A8%E6%80%81%E5%A2%9E%E5%88%A0%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Linux动态增删系统调用
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/11/21/%E4%BD%BF%E7%94%A8Linux%E5%B7%A5%E5%85%B7%E5%88%86%E6%9E%90g-%E7%94%9F%E6%88%90%E7%9A%84%E4%BB%A3%E7%A0%81/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">使用Linux工具分析g++生成的代码</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

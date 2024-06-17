@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Effective C++(十一) | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="从此开始进入定制new和delete主题，因为C++手动管理内存的双面性，因此了解new和delete是十分必要的。时至今日，垃圾回收(Garbage Collection，GC)十分流行，主流的的语言里面也只有C和C++没有GC的支持，下图是2018的TIOBE语言使用统计: 可以看到Top 10的语言里面除C和C++以外都是具有GC的语言。GC固然会带来程序性能的下降，但是免去手动管理内存带来">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Effective C++(十一)">
+<meta property="og:url" content="https://cfwloader.github.io/2018/01/24/Effective-C-%E5%8D%81%E4%B8%80/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="从此开始进入定制new和delete主题，因为C++手动管理内存的双面性，因此了解new和delete是十分必要的。时至今日，垃圾回收(Garbage Collection，GC)十分流行，主流的的语言里面也只有C和C++没有GC的支持，下图是2018的TIOBE语言使用统计: 可以看到Top 10的语言里面除C和C++以外都是具有GC的语言。GC固然会带来程序性能的下降，但是免去手动管理内存带来">
+<meta property="og:locale" content="zh_ZN">
+<meta property="og:image" content="https://cfwloader.github.io/2018/01/24/Effective-C-%E5%8D%81%E4%B8%80/tiobe_index2018jan.jpg">
+<meta property="article:published_time" content="2018-01-24T03:17:42.000Z">
+<meta property="article:modified_time" content="2024-06-17T03:11:12.089Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="C++11">
+<meta property="article:tag" content="Effective C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cfwloader.github.io/2018/01/24/Effective-C-%E5%8D%81%E4%B8%80/tiobe_index2018jan.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Effective-C-十一" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/01/24/Effective-C-%E5%8D%81%E4%B8%80/" class="article-date">
+  <time class="dt-published" datetime="2018-01-24T03:17:42.000Z" itemprop="datePublished">2018-01-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Effective C++(十一)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>从此开始进入<code>定制new和delete</code>主题，因为<code>C++</code>手动管理内存的双面性，因此了解<code>new</code>和<code>delete</code>是十分必要的。时至今日，<code>垃圾回收(Garbage Collection，GC)</code>十分流行，主流的的语言里面也只有<code>C</code>和<code>C++</code>没有<code>GC</code>的支持，下图是2018的TIOBE语言使用统计:<br><img src="/2018/01/24/Effective-C-%E5%8D%81%E4%B8%80/tiobe_index2018jan.jpg"></p>
+<p>可以看到<code>Top 10</code>的语言里面除<code>C</code>和<code>C++</code>以外都是具有<code>GC</code>的语言。GC固然会带来程序性能的下降，但是免去手动管理内存带来的开发效率的提高更加明显，<code>Top 1</code>的<code>Java</code>就很好地说明了这点。而且在<code>多线程</code>的挑战下，手动内存管理变得尤其困难，笔者曾尝试过写一个多线程Socket程序，却总是崩溃，找了三天才找出是自己没有正确管理好内存。当一个执行线程开始使用一个对象的时候，该对象已经在其他线程中被析构了。因此从这点看来，<code>C++</code>需要耗费不少精力才能学好。</p>
+<p><code>Effective C++</code>里面只有<code>operator new</code>的出现，如果读者已经阅读过《深度探索C++对象模型》的话，应该也接触过<code>new operator</code>，要注意这两者的区别。</p>
+<h2 id="条款49-了解new-handler的行为"><a href="#条款49-了解new-handler的行为" class="headerlink" title="条款49:了解new-handler的行为"></a>条款49:了解new-handler的行为</h2><p>当<code>operator new</code>因无法满足所要求的内存需求而抛出异常前，其中一步会调用客户制定的错误处理函数，即所谓的<code>new-handler</code>:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> std</span><br><span class="line">{</span><br><span class="line">	<span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*new_handler)</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function">new_handler <span class="title">set_new_handler</span><span class="params">(new_handler p)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>也就是说一旦调用了<code>set_new_handler</code>之后，在申请内存失败的时候则会调用输入<code>p</code>函数。而一个设计良好的<code>new-handler</code>则应该有以下的行为:</p>
+<ul>
+<li>让更多的内存可被使用。类似GC过程，或者在程序初始化时开辟更大块的内存。</li>
+<li>安装另外一个new-handler。让有能力处理的new-handler接手。</li>
+<li>卸除new-handler。直接让operator new失败时抛出异常。</li>
+<li>抛出bad_alloc异常。</li>
+<li>不返回，调用abort()或者exit()。</li>
+</ul>
+<p>一般没有太大的必要去定制<code>new-handler</code>，如果非要定制的话，引用书上的实现:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Widget</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">static</span> std::new_handler <span class="title">set_new_handler</span><span class="params">(std::new_handler p)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="type">static</span> std::new_handler currentHandler;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>除非是<code>const</code>的静态成员，否则需要把定义式写在类的定义外:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">std::new_handler Widget::currentHandler = <span class="number">0</span>;	<span class="comment">// 初始化为null</span></span><br></pre></td></tr></table></figure>
+<p>标准版的<code>set_new_handler</code>:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::new_handler <span class="title">Widget::set_new_handler</span><span class="params">(std::new_handler p)</span> <span class="title">throw</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	std::new_handler oldHandler = currentHandler;</span><br><span class="line"></span><br><span class="line">	currentHandler = p;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> oldHandler;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p><code>Widget::operator new</code>行为如下:</p>
+<ol>
+<li>调用标准set_new_handler，告知Widget的错误处理函数。会将Widget::currentHandler = ${global new-handler}。</li>
+<li>调用global operator new，执行实际的内存分配。如果分配失败则调用Widget::currentHandler。</li>
+<li>global operator new成功分配，返回内存指针。Widget::~Widget()会管理global new-handler，会恢复<code>Widget::operator new</code>调用前global new-handler。</li>
+</ol>
+<p>后面原作也用了详细的代码介绍了上面的三个过程，这里省略掉一是因为这部分可以查原书代码了解，二是笔者对这部分了解不深，基本上仍然处于初次接触的水平，三是该条款重点是了解<code>set_new_handler</code>以及相关的过程即可。</p>
+<h2 id="条款50-了解new和delete的合理替换时机"><a href="#条款50-了解new和delete的合理替换时机" class="headerlink" title="条款50:了解new和delete的合理替换时机"></a>条款50:了解new和delete的合理替换时机</h2><p>对于绝大多数的<code>C++</code>程序员，语言提供的原始的<code>operator new</code>和<code>operator delete</code>基本上可以满足程序的需求，很少人想到去重载(原书上用的“替换”)这两个<code>operator</code>。书上列出了三个最常见的理由:</p>
+<ul>
+<li>用来检测运用上的错误。</li>
+<li>为了强化效能。例如插入一些<code>内存碎片</code>整理的算法。</li>
+<li>为了收集使用上的统计数据。</li>
+</ul>
+<p>总的来说，就是改变原有的行为，修改分配规则，或者插入一些信息记录的步骤。书上也给出定制<code>operator new</code>的一般方法:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 让分配的对象具有签名</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="type">int</span> signatrue = <span class="number">0xDEADBEEF</span>;	<span class="comment">// 特征值</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">char</span> Byte;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 暂时忽略一些小错误</span></span><br><span class="line"><span class="function"><span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line">	<span class="type">size_t</span> realSize = size + <span class="number">2</span> * <span class="built_in">sizeof</span>(<span class="type">int</span>);	<span class="comment">// 空出2个int存放signature</span></span><br><span class="line"></span><br><span class="line">	<span class="type">void</span>* pMem = <span class="built_in">malloc</span>(realSize);				<span class="comment">// 调用malloc分配内存</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(!pMen) <span class="keyword">throw</span> <span class="built_in">bad_alloc</span>();</span><br><span class="line"></span><br><span class="line">	*(<span class="built_in">static_cast</span>&lt;<span class="type">int</span>*&gt;(pMen)) = signatrue;		<span class="comment">// 在对象头存放signature</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 找到分配块的最后两个字节，并写入signatrue</span></span><br><span class="line">	*(<span class="built_in">reinterpret_cast</span>&lt;<span class="type">int</span>*&gt;(<span class="built_in">static_cast</span>&lt;Byte*&gt;(pMem) + realSize - <span class="built_in">sizeof</span>(<span class="type">int</span>))) = signatrue;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 返回原本申请大小对象实际指针位置，在开头signature后的第一个字节</span></span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">static_cast</span>&lt;Byte*&gt;(pMem) + <span class="built_in">sizeof</span>(<span class="type">int</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>例子中的主要缺陷是没有遵循<code>operator new</code>的原则，如应该有一个循环调用<code>new-handling</code>的行为，直到所有尝试都失败，具体可以看条款51。</p>
+<p><code>对齐(alignment)</code>的问题，因为<code>C++</code>底层的代码必然接触到操作系统、甚至硬件相关的这样的细节，重载<code>operator new</code>可以做到对齐的修正，提高运行速度。</p>
+<p>一般需要修改默认的<code>operator new</code>和<code>operator delete</code>的理由如下:</p>
+<ul>
+<li>为了检测运用错误。</li>
+<li>为了收集动态分配内存的使用统计信息。</li>
+<li>为了增加分配和归还的速度。</li>
+<li>为了降低缺省内存管理器带来的额外空间开销。</li>
+<li>为了弥补缺省分配器的非最佳对齐(suboptimal alignment)。例如指针值在32位系统是4倍数等。</li>
+<li>为了将相关对象成簇集中。减少<code>缺页异常(Page Faults)</code>。</li>
+<li>为了获得非传统的行为。</li>
+</ul>
+<h2 id="条款51-编写new和delete时固守常规"><a href="#条款51-编写new和delete时固守常规" class="headerlink" title="条款51:编写new和delete时固守常规"></a>条款51:编写new和delete时固守常规</h2><p>先给出结论:</p>
+<ul>
+<li><code>operator new</code>应该内含一个无穷循环，并在其中尝试分配内存，如果它无法满足内存需求，就该调用<code>new-handler</code>。它也应该有能力处理<code>0 bytes</code>申请。Class专属版本则应该处理“比正确大小更大的(错误)申请”。</li>
+<li><code>operator delete</code>应该在收到null指针时不做任何事。Class专属版本则还应该处理“比正确大小更大的(错误)申请”。</li>
+</ul>
+<p>C++规定，即便要求客户要求<code>0 bytes</code>，<code>operator new</code>也会返回一个合法指针。一份常规的<code>non-member operator new</code>伪码:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span>	<span class="comment">// 定制的函数可以接受额外的参数</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(size == <span class="number">0</span>)			<span class="comment">// 0-byte提为1-byte请求</span></span><br><span class="line">	{</span><br><span class="line">		size = <span class="number">1</span>;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span>(<span class="literal">true</span>)				<span class="comment">// 直到申请成功为止，或者程序崩溃</span></span><br><span class="line">	{</span><br><span class="line">		尝试分配 size bytes;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span>(成功分配)</span><br><span class="line">		{</span><br><span class="line">			<span class="keyword">return</span> 成功分配的指针值;</span><br><span class="line">		}</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 分配失败</span></span><br><span class="line">		new_handler globalHandler = <span class="built_in">set_new_handler</span>(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">		<span class="built_in">set_new_handler</span>(globalHandler);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span>(globalHandler)</span><br><span class="line">		{</span><br><span class="line">			(*globalHandler)();</span><br><span class="line">		}</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		{</span><br><span class="line">			<span class="keyword">throw</span> std::<span class="built_in">bad_alloc</span>();</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>如果是Class专属版的<code>operator new</code>:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base 	<span class="comment">// Derived并没有声明自己的operator new</span></span><br><span class="line">{...};</span><br><span class="line"></span><br><span class="line">Derived* pd = <span class="keyword">new</span> Derived;</span><br></pre></td></tr></table></figure>
+<p>那么问题就很明显了，<code>Derived</code>的大小大于等于<code>Base</code>，这样重载的<code>operator new</code>执行出来的<code>Derived</code>的尺寸是正确的吗？</p>
+<p>虽然很怪异，但是如果<code>Base::operator new</code>这样实现:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span>* Base::<span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="keyword">if</span>(size != <span class="built_in">sizeof</span>(Base))		<span class="comment">// 尺寸匹配不上</span></span><br><span class="line">	{</span><br><span class="line">		<span class="keyword">return</span> ::<span class="keyword">operator</span> <span class="built_in">new</span>(size);	<span class="comment">// 交给标准的operator new处理</span></span><br><span class="line">	}</span><br><span class="line">	...					<span class="comment">// 正常流程</span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>把责任甩开可以解决问题。</p>
+<p>如果重载<code>operator new[]</code>的话，考虑到<code>Base</code>的子子孙孙，<code>bytes % sizeof(Base)</code>的值就不一定为零了，所以重载的时候要考虑的问题还真不少。</p>
+<p>接下来就是<code>operator delete</code>的问题，首先记住“删除null指针永远安全”，如下一份<code>non-member operator delete</code>的伪码:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* rawMemory)</span> <span class="title">throw</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="keyword">if</span>(rawMemory == <span class="number">0</span>) <span class="keyword">return</span>;		<span class="comment">// 不处理空指针</span></span><br><span class="line"></span><br><span class="line">	...				<span class="comment">// 剩余的delete动作</span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>同样，考虑到<code>Base</code>的子子孙孙，<code>Base</code>专属版的operator delete`应该这么实现:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span>;</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* rawMemory, std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> Base::<span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* rawMemory, std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="keyword">if</span>(rawMemory == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(size != <span class="built_in">sizeof</span>(Base))		<span class="comment">// 甩锅给标准版operator delete</span></span><br><span class="line">	{</span><br><span class="line">		::<span class="function"><span class="keyword">operator</span> <span class="title">delete</span><span class="params">(rawMemory)</span></span>;</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	...		<span class="comment">// 剩余的归还动作。</span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>注意，如果没有<code>virtual</code>关键字修饰的析构函数，<code>operator delete</code>也不会接收到正确的<code>size</code>。所以在一个继承里面，<code>virtual</code>关键字是必须要考虑的。</p>
+<h2 id="条款52-写了placement-new也要写placement-delete"><a href="#条款52-写了placement-new也要写placement-delete" class="headerlink" title="条款52:写了placement new也要写placement delete"></a>条款52:写了placement new也要写placement delete</h2><p><code>placement new</code>和<code>placement delete</code>应该是更少见的语法了。什么是<code>placement new</code>:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">如果operator new接受的参数除了一定会有的那个size_t之外还有其他，这边是所谓的placement new。</span><br></pre></td></tr></table></figure>
+<p>有很多版本的<code>placement new</code>，其中最为有用的一个是“接受一个指针指向对象该被构造之处”:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span>, <span class="type">void</span>* pMemory)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+<p>同样，如果接受额外参数的<code>operator delete</code>也成为<code>placement delete</code>。原书上给出了加了日志功能的<code>placement new/delete</code>的例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Widget</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	...</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span>, std::ostream&amp; logStream)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* pMemory)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* pMemory, std::ostream&amp; logStream)</span> <span class="title">throw</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p><code>placement new</code>一定要有对应版本的<code>placement delete</code>，若<code>placement new</code>过程抛出了异常，需要恢复而调用<code>operator delete</code>时，是寻找参数匹配的<code>placement delete</code>，假如没有提供的话，那么就不会执行恢复步骤产生内存泄漏。例如上述代码的成对的<code>placement new/delete</code>。当:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Widget* pw = <span class="built_in">new</span>(std::cerr) Widget;</span><br></pre></td></tr></table></figure>
+<p>发生异常，除了原有的log输出到<code>std::cerr</code>中，因为具有参数匹配的<code>placement delete</code>被调用，因而不会有泄漏的问题。</p>
+<p>还有，写了<code>placement new</code>就会产生名字掩盖问题:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	...</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size, std::ostream&amp; logStream)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span>;</span><br><span class="line">	<span class="comment">// 这里只有placement new而没有operator new，global operator new被掩盖了</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">Base* pb = <span class="keyword">new</span> Base;		<span class="comment">// 调用失败，正常的operator new被掩盖了</span></span><br><span class="line"></span><br><span class="line">Base* pb = <span class="built_in">new</span> (std::cerr) Base;		<span class="comment">// OK</span></span><br></pre></td></tr></table></figure>
+<p>同理:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	...</span><br><span class="line">	<span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> size)</span> <span class="title">throw</span><span class="params">(std::bad_alloc)</span></span>;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">Derived* pd = <span class="built_in">new</span> (std::clog) Derived;		<span class="comment">// 错误，Base中的placement new被掩盖了</span></span><br><span class="line"></span><br><span class="line">Derived* pd = <span class="keyword">new</span> Derived;					<span class="comment">// OK</span></span><br></pre></td></tr></table></figure>
+<p>所以在写自己的<code>placement new/delete</code>时，要考虑该类需不需要一般形式的<code>operator new</code>。</p>
+<p>即是，声明<code>placement new/delete</code>时，不要忘记了这样会掩盖正常版本的<code>operator new/delete</code>。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2018/01/24/Effective-C-%E5%8D%81%E4%B8%80/" data-id="clximfz6m000p7kkv8c08ehgu" data-title="Effective C++(十一)" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/25/Effective-C-%E5%8D%81%E4%BA%8C/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Effective C++(十二)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/17/Effective-C-%E5%8D%81/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Effective C++(十)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

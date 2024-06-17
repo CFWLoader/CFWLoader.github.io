@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>R配置Keras | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="TensorFlow基本上成为了深度学习的标配。但是为了学习主要的内容（忽略底层实现细节）或者快速实现一个神经网络模型，Keras是一个很好的选择。 Keras中文版文档 环境准备 R Rtools Anaconda  安装步骤安装R的Keras需要用到devtools::install_github()命令，因此需要安装devtools包。 但是笔者用的Windows 10，直接安装包不会报错，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="R配置Keras">
+<meta property="og:url" content="https://cfwloader.github.io/2018/06/21/R%E9%85%8D%E7%BD%AEKeras/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="TensorFlow基本上成为了深度学习的标配。但是为了学习主要的内容（忽略底层实现细节）或者快速实现一个神经网络模型，Keras是一个很好的选择。 Keras中文版文档 环境准备 R Rtools Anaconda  安装步骤安装R的Keras需要用到devtools::install_github()命令，因此需要安装devtools包。 但是笔者用的Windows 10，直接安装包不会报错，">
+<meta property="og:locale" content="zh_ZN">
+<meta property="article:published_time" content="2018-06-21T11:18:18.000Z">
+<meta property="article:modified_time" content="2024-06-17T03:11:12.095Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="R">
+<meta property="article:tag" content="Keras">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-R配置Keras" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/06/21/R%E9%85%8D%E7%BD%AEKeras/" class="article-date">
+  <time class="dt-published" datetime="2018-06-21T11:18:18.000Z" itemprop="datePublished">2018-06-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      R配置Keras
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://www.tensorflow.org/">TensorFlow</a>基本上成为了深度学习的标配。但是为了学习主要的内容（忽略底层实现细节）或者快速实现一个神经网络模型，<a target="_blank" rel="noopener" href="https://keras.io/">Keras</a>是一个很好的选择。</p>
+<p><a target="_blank" rel="noopener" href="http://keras-cn.readthedocs.io/en/latest/">Keras中文版文档</a></p>
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.r-project.org/">R</a></li>
+<li><a target="_blank" rel="noopener" href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.anaconda.com/">Anaconda</a></li>
+</ul>
+<h2 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h2><p>安装<code>R</code>的<code>Keras</code>需要用到<code>devtools::install_github()</code>命令，因此需要安装<code>devtools</code>包。</p>
+<p>但是笔者用的<code>Windows 10</code>，直接安装包不会报错，但是使用该包下的命令会出一些奇怪的错误，例如在装<code>R-Keras</code>时就报超时。</p>
+<p>所以建议在<code>Windows</code>下使用该包时，先去安装<a target="_blank" rel="noopener" href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>。</p>
+<p>同时需要安装好<code>Anaconda</code>，不然在后续步骤中会报错。</p>
+<p>安装好<code>Rtools</code>之后，打开<code>R命令行</code>，在其中再安装一遍<code>devtools</code>包：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">install.packages<span class="punctuation">(</span><span class="string">"devtools"</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后安装<code>R</code>的<code>Keras</code>接口：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">devtools<span class="operator">::</span>install_github<span class="punctuation">(</span><span class="string">"rstudio/keras"</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>在命令行或者第一次运行<code>Keras</code>的脚本下输入：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">library<span class="punctuation">(</span>keras<span class="punctuation">)</span></span><br><span class="line">install_keras<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>然后会调用<code>Anaconda</code>为<code>R-Keras</code>建立一个环境，成功初始化，在以后的<code>R脚本</code>就不需要再使用<code>install_keras()</code>命令了。</p>
+<h2 id="安装GPU支持"><a href="#安装GPU支持" class="headerlink" title="安装GPU支持"></a>安装GPU支持</h2><p>事实上这部分操作是属于<code>Anaconda</code>那边的操作，毕竟<code>R-Keras</code>用的还是<code>Python</code>的<code>TensorFlow</code>后端。</p>
+<p><a target="_blank" rel="noopener" href="http://keras-cn.readthedocs.io/en/latest/for_beginners/keras_windows/">中文文档里面</a>就已经很详细地介绍了如何准备<code>GPU</code>环境：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.nvidia.com/cuda-downloads">CUDA</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.nvidia.com/cudnn">cuDNN</a></li>
+</ul>
+<p>文档写的时候上述Keras尚未支持高版本的<code>CUDA</code>和<code>cuDNN</code>，经笔者测试，是可以支持最新版的<code>CUDA</code>和<code>cuDNN</code>的。</p>
+<p>安装好后，打开<code>Anaconda Navigator</code>管理软件，或者命令行模式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ activate r-tensorflow</span><br></pre></td></tr></table></figure>
+
+<p>切换到<code>r-tensorflow</code>环境，安装<code>gpu</code>版<code>Keras</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ conda install keras-gpu</span><br></pre></td></tr></table></figure>
+
+<p>等待安装过程（可能因为墙导致下载出问题，要么上梯子，要么辛苦一点重试几次安装命令吧）后，就可以开始使用了。</p>
+<h2 id="测试R-Keras"><a href="#测试R-Keras" class="headerlink" title="测试R-Keras"></a>测试R-Keras</h2><p>官网给了<code>MNIST</code>测试集作为Demo，然而<code>AWS</code>被墙了，整个Demo直接卡在下载数据集步骤就挂了。</p>
+<p>笔者写了个简单的脚本用于测试：</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">library<span class="punctuation">(</span>keras<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">script_dir <span class="operator">&lt;-</span> dirname<span class="punctuation">(</span>sys.frame<span class="punctuation">(</span><span class="number">1</span><span class="punctuation">)</span><span class="operator">$</span>ofile<span class="punctuation">)</span></span><br><span class="line">setwd<span class="punctuation">(</span>script_dir<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 产生sample.size * num_props的矩阵， 默认80%数据作为训练集，20%作为验证集</span></span><br><span class="line">gensam <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>sample.size <span class="operator">=</span> <span class="number">10000</span><span class="punctuation">,</span> num_props <span class="operator">=</span> <span class="number">30</span><span class="punctuation">,</span> val_portion <span class="operator">=</span> <span class="number">0.2</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">{</span></span><br><span class="line">    all.x <span class="operator">&lt;-</span> array<span class="punctuation">(</span><span class="built_in">dim</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span>sample.size<span class="punctuation">,</span> num_props<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    all.y <span class="operator">&lt;-</span> array<span class="punctuation">(</span><span class="built_in">dim</span> <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span>sample.size<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span><span class="punctuation">(</span>i <span class="keyword">in</span> <span class="punctuation">(</span><span class="number">1</span> <span class="operator">:</span> sample.size<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">{</span></span><br><span class="line">        all.x<span class="punctuation">[</span>i<span class="punctuation">,</span> <span class="punctuation">]</span> <span class="operator">&lt;-</span> array<span class="punctuation">(</span><span class="built_in">round</span><span class="punctuation">(</span>runif<span class="punctuation">(</span>num_props<span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">,</span> <span class="number">9</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">        <span class="keyword">if</span><span class="punctuation">(</span><span class="built_in">sum</span><span class="punctuation">(</span>all.x<span class="punctuation">[</span>i<span class="punctuation">,</span> <span class="punctuation">]</span><span class="punctuation">)</span> <span class="operator">&gt;=</span> <span class="number">100</span><span class="punctuation">)</span></span><br><span class="line">        <span class="punctuation">{</span></span><br><span class="line">            all.y<span class="punctuation">[</span>i<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="number">1</span></span><br><span class="line">        <span class="punctuation">}</span></span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        <span class="punctuation">{</span></span><br><span class="line">            all.y<span class="punctuation">[</span>i<span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">]</span> <span class="operator">&lt;-</span> <span class="number">0</span></span><br><span class="line">        <span class="punctuation">}</span></span><br><span class="line">    <span class="punctuation">}</span></span><br><span class="line"></span><br><span class="line">    split_point <span class="operator">&lt;-</span> <span class="punctuation">(</span><span class="number">1</span> <span class="operator">-</span> val_portion<span class="punctuation">)</span> <span class="operator">*</span> sample.size</span><br><span class="line"></span><br><span class="line">    <span class="built_in">list</span><span class="punctuation">(</span></span><br><span class="line">        train <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span></span><br><span class="line">            x <span class="operator">=</span> all.x<span class="punctuation">[</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span> <span class="operator">:</span> split_point<span class="punctuation">)</span><span class="punctuation">,</span> <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">            y <span class="operator">=</span> all.y<span class="punctuation">[</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span> <span class="operator">:</span> split_point<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">        test <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span></span><br><span class="line">            x <span class="operator">=</span> all.x<span class="punctuation">[</span><span class="built_in">c</span><span class="punctuation">(</span><span class="punctuation">(</span>split_point <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">:</span> sample.size<span class="punctuation">)</span><span class="punctuation">,</span> <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">            y <span class="operator">=</span> all.y<span class="punctuation">[</span><span class="built_in">c</span><span class="punctuation">(</span><span class="punctuation">(</span>split_point <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">:</span> sample.size<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">)</span></span><br><span class="line">    <span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">}</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 产生一个数据集</span></span><br><span class="line">dataset <span class="operator">&lt;-</span> gensam<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 准备训练一个LSTM网络，重塑数据集变成维度为(样本数量，序列长度，序列元素的长度)</span></span><br><span class="line">x_train <span class="operator">&lt;-</span> array_reshape<span class="punctuation">(</span>dataset<span class="operator">$</span>train<span class="operator">$</span>x<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span>nrow<span class="punctuation">(</span>dataset<span class="operator">$</span>train<span class="operator">$</span>x<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">30</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">y_train <span class="operator">&lt;-</span> dataset<span class="operator">$</span>train<span class="operator">$</span>y</span><br><span class="line"></span><br><span class="line">x_test <span class="operator">&lt;-</span> array_reshape<span class="punctuation">(</span>dataset<span class="operator">$</span>test<span class="operator">$</span>x<span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span>nrow<span class="punctuation">(</span>dataset<span class="operator">$</span>test<span class="operator">$</span>x<span class="punctuation">)</span><span class="punctuation">,</span> <span class="number">30</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">y_test <span class="operator">&lt;-</span> dataset<span class="operator">$</span>test<span class="operator">$</span>y</span><br><span class="line"></span><br><span class="line">model <span class="operator">&lt;-</span> keras_model_sequential<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">model <span class="operator">%&gt;%</span></span><br><span class="line">    layer_lstm<span class="punctuation">(</span>units <span class="operator">=</span> <span class="number">200</span><span class="punctuation">,</span> activation <span class="operator">=</span> <span class="string">"hard_sigmoid"</span><span class="punctuation">,</span> input_shape <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">30</span><span class="punctuation">,</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">%&gt;%</span></span><br><span class="line">    layer_dense<span class="punctuation">(</span>units <span class="operator">=</span> <span class="number">1</span><span class="punctuation">,</span> activation <span class="operator">=</span> <span class="string">"sigmoid"</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译模型</span></span><br><span class="line">model <span class="operator">%&gt;%</span> compile<span class="punctuation">(</span></span><br><span class="line">  loss <span class="operator">=</span> <span class="string">'binary_crossentropy'</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 使用ADAM优化</span></span><br><span class="line">  optimizer <span class="operator">=</span> optimizer_adam<span class="punctuation">(</span>lr <span class="operator">=</span> <span class="number">0.001</span><span class="punctuation">,</span> beta_1 <span class="operator">=</span> <span class="number">0.001</span><span class="punctuation">,</span> beta_2 <span class="operator">=</span> <span class="number">0.999</span><span class="punctuation">,</span> epsilon <span class="operator">=</span> <span class="number">10e-8</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  metrics <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">'accuracy'</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 训练模型并记录</span></span><br><span class="line">history <span class="operator">&lt;-</span> model <span class="operator">%&gt;%</span> fit<span class="punctuation">(</span></span><br><span class="line">  x_train<span class="punctuation">,</span> y_train<span class="punctuation">,</span></span><br><span class="line">  epochs <span class="operator">=</span> <span class="number">10</span><span class="punctuation">,</span> batch_size <span class="operator">=</span> <span class="number">100</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">eval_report <span class="operator">&lt;-</span> model <span class="operator">%&gt;%</span> evaluate<span class="punctuation">(</span></span><br><span class="line">  x_test<span class="punctuation">,</span> y_test</span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出训练完的模型在验证集的情况</span></span><br><span class="line">print<span class="punctuation">(</span>eval_report<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">plt.df <span class="operator">&lt;-</span> data.frame<span class="punctuation">(</span></span><br><span class="line">  x <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">1</span><span class="operator">:</span><span class="built_in">length</span><span class="punctuation">(</span>history<span class="operator">$</span>metrics<span class="operator">$</span>loss<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  loss <span class="operator">=</span> history<span class="operator">$</span>metrics<span class="operator">$</span>loss<span class="punctuation">,</span></span><br><span class="line">  acc <span class="operator">=</span> history<span class="operator">$</span>metrics<span class="operator">$</span>acc</span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出LOSS和ACC在迭代中的变化图形</span></span><br><span class="line">ggplot<span class="punctuation">(</span>plt.df<span class="punctuation">,</span> aes<span class="punctuation">(</span>x <span class="operator">=</span> x<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> geom_point<span class="punctuation">(</span>aes<span class="punctuation">(</span>y <span class="operator">=</span> loss<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">"Loss"</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> geom_point<span class="punctuation">(</span>aes<span class="punctuation">(</span>y <span class="operator">=</span> acc<span class="punctuation">,</span> color <span class="operator">=</span> <span class="string">"Acc"</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span> labs<span class="punctuation">(</span>color <span class="operator">=</span> <span class="string">"Type"</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">ggsave<span class="punctuation">(</span><span class="string">"history.png"</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<p>如果脚本成功运行的话，会在相同目录下产生一份名为<code>history.png</code>的图片，那么恭喜，安装成功了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2018/06/21/R%E9%85%8D%E7%BD%AEKeras/" data-id="clximfz6r001z7kkvh6a4ducy" data-title="R配置Keras" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/06/29/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E5%85%AD/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          机器学习练习笔记(六)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/05/27/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%BA%94/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">机器学习练习笔记(五)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Linux动态增删系统调用 | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="环境支持 Fedora 25 gcc  系统调用Linux的系统调用是操作系统提供给用户程序调用的一组接口，用户程序可以在用户态下调用这些接口获得内核提供的服务，而无须进入内核态，这样就会少了很多权限上的问题，而且用户态与内核态的切换是存在开销的。 增删系统调用的方法1.重新编译内核修改内核库函数的相关文件，将准备添加的系统调用声明以及实现代码等加入进去，然后使用make命令重新编译一个新的内核，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux动态增删系统调用">
+<meta property="og:url" content="https://cfwloader.github.io/2017/11/24/Linux%E5%8A%A8%E6%80%81%E5%A2%9E%E5%88%A0%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="环境支持 Fedora 25 gcc  系统调用Linux的系统调用是操作系统提供给用户程序调用的一组接口，用户程序可以在用户态下调用这些接口获得内核提供的服务，而无须进入内核态，这样就会少了很多权限上的问题，而且用户态与内核态的切换是存在开销的。 增删系统调用的方法1.重新编译内核修改内核库函数的相关文件，将准备添加的系统调用声明以及实现代码等加入进去，然后使用make命令重新编译一个新的内核，">
+<meta property="og:locale" content="zh_ZN">
+<meta property="article:published_time" content="2017-11-24T08:42:58.000Z">
+<meta property="article:modified_time" content="2024-06-17T03:11:12.094Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="C">
+<meta property="article:tag" content="系统调用">
+<meta property="article:tag" content="动态加载模块">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Linux动态增删系统调用" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/11/24/Linux%E5%8A%A8%E6%80%81%E5%A2%9E%E5%88%A0%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" class="article-date">
+  <time class="dt-published" datetime="2017-11-24T08:42:58.000Z" itemprop="datePublished">2017-11-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Linux动态增删系统调用
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="环境支持"><a href="#环境支持" class="headerlink" title="环境支持"></a>环境支持</h2><ul>
+<li>Fedora 25</li>
+<li>gcc</li>
+</ul>
+<h2 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h2><p><code>Linux</code>的系统调用是操作系统提供给用户程序调用的一组接口，用户程序可以在<code>用户态</code>下调用这些接口获得内核提供的服务，而无须进入内核态，这样就会少了很多权限上的问题，而且用户态与内核态的切换是存在开销的。</p>
+<h3 id="增删系统调用的方法"><a href="#增删系统调用的方法" class="headerlink" title="增删系统调用的方法"></a>增删系统调用的方法</h3><h4 id="1-重新编译内核"><a href="#1-重新编译内核" class="headerlink" title="1.重新编译内核"></a>1.重新编译内核</h4><p>修改内核库函数的相关文件，将准备添加的系统调用声明以及实现代码等加入进去，然后使用<code>make</code>命令重新编译一个新的内核，添加到<code>grub</code>启动列表等等。</p>
+<p>过程挺麻烦的，而且涉及到编译内核，要准备不少环境不说了，一旦与搜索引擎搜索出来的教程环境不一样的话，还有不小概率会编译失败。</p>
+<h4 id="2-动态加载模块"><a href="#2-动态加载模块" class="headerlink" title="2.动态加载模块"></a>2.动态加载模块</h4><p>这个方法不需要修改内核库相关的文件，自己的代码源码和makefile写好，基本上就可以了。主要的原理是利用动态加载模块的时候的权限访问以及修改系统相关的一些信息。而系统调用表是操作系统级的数据，所以在动态加载的过程中获得系统调用表并修改之。</p>
+<p>这个过程也不简单，而且编译成功也需要花费点心思，毕竟大多数搜出来的教程什么的，不是祖传的就是拷贝的，当自己的实验环境跟教程不一样的话，只能靠自己摸索了。</p>
+<h2 id="环境参数收集"><a href="#环境参数收集" class="headerlink" title="环境参数收集"></a>环境参数收集</h2><h4 id="1-获取当前系统已使用的系统调用号"><a href="#1-获取当前系统已使用的系统调用号" class="headerlink" title="1.获取当前系统已使用的系统调用号:"></a>1.获取当前系统已使用的系统调用号:</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cat</span> /usr/include/asm/unistd.h</span><br></pre></td></tr></table></figure>
+<p>然后根据自身系统的位数，例如笔者的<code>Fedora 25</code>是64位机:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cat</span> /usr/include/asm/unistd_64.h</span><br></pre></td></tr></table></figure>
+<p>获得最后一个系统调用号:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#define __NR_statx 332</span><br></pre></td></tr></table></figure>
+<p>这样在后续设置准备添加的系统调用号就为<code>333</code>以后的值，然而这个是祖传教程里面可以采用的做法，笔者尝试了在本机64位<code>Fedora 25</code>下添加调用号为<code>333</code>的系统调用，失败了，也没能找到类似<code>NR_syscalls</code>这类的宏定义来修改。只能通过替换<code>332</code>以内的值来替换系统当前使用中的系统调用。</p>
+<p>替换已有的系统调用号，在卸除自己添加的系统调用的时候还原回去。但是系统调用会被众多系统中的应用调用的，一个不小心可能会导致系统中一些应用的崩溃，所以这个是能是个实验，看来在64位机上要做应用级的系统调用还是得重新编译内核。</p>
+<h4 id="2-获取系统系统调用表的内存地址"><a href="#2-获取系统系统调用表的内存地址" class="headerlink" title="2.获取系统系统调用表的内存地址:"></a>2.获取系统系统调用表的内存地址:</h4><p>解决这个问题的方法有很多，笔者采用的是:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo <span class="built_in">cat</span> /proc/kallsyms | grep sys_call_table</span><br></pre></td></tr></table></figure>
+<p>就会得到:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ffffffff90a00200 R sys_call_table</span><br><span class="line">ffffffff90a00e80 R ia32_sys_call_table</span><br></pre></td></tr></table></figure>
+<p>只需要用到<code>sys_call_table</code>的值即可。</p>
+<p>注意到它们的只读<code>R</code>属性，这意味着即使拿到了超级权限，也无法修改，怎么解决这个问题后面会提及。</p>
+<h2 id="演示目标说明"><a href="#演示目标说明" class="headerlink" title="演示目标说明"></a>演示目标说明</h2><p>既然是一个实验，那肯定需要用一个演示程序及其演示结果来让实验者得知目标已达成，在这个实验里面，用户态的程序是发起系统调用，获得系统正在运行进程信息，并显示出来，在这里虽然设计了深度来表示进程是有几个前驱进程创建出来的，但是没有表现父子间的关系，只有简单的层数。</p>
+<p>那么被调用的系统调用自然就是查询系统中的进程的数据结构，采集需要的数据并存到起来，返回给用户态的程序。</p>
+<h2 id="定义结构体"><a href="#定义结构体" class="headerlink" title="定义结构体"></a>定义结构体</h2><p>这个结构体是用来采集系统中进程的信息，这个定义在用户态程序的代码和内核态程序的代码要分开定义，但是要保持一致。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">process_info_t</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">int</span> pid;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">int</span> depth;</span><br><span class="line"></span><br><span class="line">	<span class="type">char</span> process_name[TASK_COMM_LEN];</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+
+<h2 id="定义准备替换的函数的功能"><a href="#定义准备替换的函数的功能" class="headerlink" title="定义准备替换的函数的功能"></a>定义准备替换的函数的功能</h2><p>定义准备替换系统调用的函数功能，注意函数参数中的<code>__user</code>定义了该参数是从用户态传入。调用<code>process_tree</code>访问系统中的进程信息并采集，随后调用<code>copy_to_user</code>函数将数据复制到用户态内存区域上。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="type">long</span> __my_syscall__(<span class="type">char</span> __user* buf)</span><br><span class="line">{</span><br><span class="line">	<span class="type">int</span> depth = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	process_counter = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	reset_proc_info_t_arr_val(pro_info_array_kernel, <span class="number">512</span>);</span><br><span class="line"></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span>* <span class="title">p</span>;</span></span><br><span class="line"></span><br><span class="line">	printk(<span class="string">"Evan's system call is executing.\n"</span>);</span><br><span class="line">	</span><br><span class="line">	p = &amp;init_task;					<span class="comment">// 获得系统进程信息的表头。</span></span><br><span class="line"></span><br><span class="line">	process_tree(p, depth);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(copy_to_user((<span class="keyword">struct</span> <span class="type">process_info_t</span>*)buf, pro_info_array_kernel, <span class="number">512</span> * <span class="keyword">sizeof</span>(<span class="keyword">struct</span> <span class="type">process_info_t</span>)))</span><br><span class="line">	{</span><br><span class="line">		<span class="keyword">return</span> -EFAULT;</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	{</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">sizeof</span>(pro_info_array_kernel);</span><br><span class="line">	}</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<p>具体执行采集进程信息的<code>process_tree</code>函数:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">process_tree</span><span class="params">(<span class="keyword">struct</span> task_struct* _p, <span class="type">int</span> _depth)</span></span><br><span class="line">{</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">list_head</span>* <span class="title">l</span>;</span></span><br><span class="line"></span><br><span class="line">	pro_info_array_kernel[process_counter].pid = _p-&gt;pid;</span><br><span class="line"></span><br><span class="line">	pro_info_array_kernel[process_counter].depth = _depth;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">strncpy</span>(pro_info_array_kernel[process_counter].process_name, _p-&gt;comm, TASK_COMM_LEN);</span><br><span class="line"></span><br><span class="line">	++process_counter;					<span class="comment">// 全局变量，用于记录采集信息数组的下标值。</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 递归复制子进程的信息。</span></span><br><span class="line">	<span class="keyword">for</span>(l = _p-&gt;children.next; l != &amp;(_p-&gt;children); l = l-&gt;next)</span><br><span class="line">	{</span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span>* <span class="title">t</span> =</span> list_entry(l, <span class="keyword">struct</span> task_struct, sibling);</span><br><span class="line"></span><br><span class="line">		process_tree(t, _depth + <span class="number">1</span>);</span><br><span class="line">	}</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+
+<h2 id="替换系统调用的函数代码"><a href="#替换系统调用的函数代码" class="headerlink" title="替换系统调用的函数代码"></a>替换系统调用的函数代码</h2><p>前面提到过系统调用表的具有不可修改的标志，甚至用超级权限也是，解决办法是用汇编访问到状态寄存器<code>CR0</code>，而<code>CR0</code>中的从低到高数20号索引(注意索引从0开始)是内存写保护位，将其设置为0之后即可为所欲为了。</p>
+<p>所以思路是修改系统调用表前设置<code>CR0</code>状态，设置写保护关闭，改完表之后设回原来的值。代码如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 关闭写保护的函数</span></span><br><span class="line"><span class="type">uint64_t</span> <span class="title function_">clr_and_ret_cr0</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">	<span class="type">uint64_t</span> cr0 = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">uint64_t</span> ret;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">asm</span>(<span class="string">"movq %%cr0, %%rax"</span>:<span class="string">"=a"</span>(cr0));					<span class="comment">// 获取CR0的值。</span></span><br><span class="line"></span><br><span class="line">	ret = cr0;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// cr0 &amp;= 0xfffffffffffeffff;						// 两句是等价的，设置20号位为0。</span></span><br><span class="line">    cr0 &amp;= ~<span class="number">0x10000</span>LL;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">asm</span>(<span class="string">"movq %%rax, %%cr0"</span>::<span class="string">"a"</span>(cr0));					<span class="comment">// 设置CR0的值。</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ret;											<span class="comment">// 将修改前的值返回到调用者。</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// 复原状态的函数</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">setback_cr0</span><span class="params">(<span class="type">uint64_t</span> val)</span></span><br><span class="line">{</span><br><span class="line">	<span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">"movq %%rax, %%cr0"</span>::<span class="string">"a"</span>(val))</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>这里用到了汇编的知识，之前的教程都是32位的汇编码，如果不加C编译参数设置编译环境是32位的话，当然在64位机编译失败。刚好笔者前一段时间科普了一下汇编，才稍微懂得把32位汇编代码改到64位机可用。</p>
+<h2 id="定义加载模块时的行为"><a href="#定义加载模块时的行为" class="headerlink" title="定义加载模块时的行为"></a>定义加载模块时的行为</h2><p>修改系统调用和编写内核模块是分开两个技术范畴，只是在这个实验中借着加载以及卸载内核模块的过程修改系统调用表。前面定义了准备替换的函数行为以及修改系统写权限的代码，现在定义程序是如何实施修改系统调用表行为。</p>
+<p>在加载内核模块的时候，告知系统加载模块时的行为用<code>module_init</code>，而告知系统卸载时的行为用<code>module_exit</code>。</p>
+<p>加载内核模块的时候修改系统调用表:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">int</span> __init __init_extra_syscall__(<span class="type">void</span>)</span><br><span class="line">{</span><br><span class="line">	printk(<span class="string">"Evan's System call successfully added.\n"</span>);</span><br><span class="line"></span><br><span class="line">	__sys_call_table_ptr__ = (<span class="type">unsigned</span> <span class="type">long</span>*)__SYS_CALL_TABLE_ADDR__;</span><br><span class="line"></span><br><span class="line">	printk(<span class="string">"System call's address: %lx. TASK_COMM_LEN's value: %d.\n"</span>, __sys_call_table_ptr__, TASK_COMM_LEN);</span><br><span class="line"></span><br><span class="line">	funptr = (<span class="type">int</span>(*)(<span class="type">void</span>)) (__sys_call_table_ptr__[__MY_SYS_CALL_NUM__]);				<span class="comment">// 保存原来表中该函数的指针。</span></span><br><span class="line"></span><br><span class="line">	orig_cr0 = clr_and_ret_cr0();														<span class="comment">// 关闭写保护。</span></span><br><span class="line"></span><br><span class="line">	__sys_call_table_ptr__[__MY_SYS_CALL_NUM__] = (<span class="type">unsigned</span> <span class="type">long</span>)&amp;__my_syscall__;		<span class="comment">// 替换为自定义的函数。</span></span><br><span class="line"></span><br><span class="line">	setback_cr0(orig_cr0);																<span class="comment">// 复原。</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<p>卸载内核模块的时候还原系统调用表:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> __exit __exit_extra_syscall__(<span class="type">void</span>)</span><br><span class="line">{</span><br><span class="line">	orig_cr0 = clr_and_ret_cr0();</span><br><span class="line"></span><br><span class="line">	__sys_call_table_ptr__[__MY_SYS_CALL_NUM__] = (<span class="type">unsigned</span> <span class="type">long</span>)funptr;</span><br><span class="line"></span><br><span class="line">	setback_cr0(orig_cr0);</span><br><span class="line"></span><br><span class="line">	printk(<span class="string">"Evan's system call exited.\n"</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>然后告知系统加载卸载内核模块行为:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">module_init(__init_extra_syscall__);</span><br><span class="line"></span><br><span class="line">module_exit(__exit_extra_syscall__);</span><br><span class="line"></span><br><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);</span><br></pre></td></tr></table></figure>
+<p>最后一句许可是不可省略的，不然会编译失败。</p>
+<h2 id="用户态程序行为"><a href="#用户态程序行为" class="headerlink" title="用户态程序行为"></a>用户态程序行为</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span></span><br><span class="line">{</span><br><span class="line">	<span class="type">int</span> i, j, err;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 系统调用332号，并传入参数。</span></span><br><span class="line">	err = syscall(<span class="number">332</span>, &amp;processes);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"Syscall result: %d.\n"</span>, err);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(err != <span class="number">0</span>)</span><br><span class="line">	{</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"%s\n"</span>, strerror(errno));</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"Syscall result: %d.\n"</span>, syscall(<span class="number">332</span>, &amp;processes));</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 打印进程信息。</span></span><br><span class="line">	<span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; <span class="number">512</span>; ++i)</span><br><span class="line">	{</span><br><span class="line">		<span class="keyword">for</span>(j = <span class="number">0</span>; j &lt; processes[i].depth; ++j)</span><br><span class="line">		{</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">"|-"</span>);</span><br><span class="line">		}</span><br><span class="line"></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"%d-%s\n"</span>, processes[i].pid, processes[i].pname);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span>(processes[i + <span class="number">1</span>].pid == <span class="number">0</span>)</span><br><span class="line">		{</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>用户态的程序很简单，就是调用，然后显示返回的数据。</p>
+<h2 id="Makefile的编写"><a href="#Makefile的编写" class="headerlink" title="Makefile的编写"></a>Makefile的编写</h2><p><code>make</code>命令已经集成好编译内核模块，指定好参数，然后<code>make</code>即可。注意<code>obj-m</code>要对应好，如笔者保存的修改系统调用表的源码文件命名为<code>ProcessTree.c</code>，所以需要<code>obj-m:=ProcessTree.o</code>。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">KERNEL_VERSION = `uname -r`</span><br><span class="line"></span><br><span class="line"><span class="section">obj-m:=ProcessTree.o</span></span><br><span class="line"><span class="comment"># EXTRA_CFLAGS=-m32	# 在64位系统编译32位代码的标志。</span></span><br><span class="line"></span><br><span class="line"><span class="section">build: kernel_modules test_run</span></span><br><span class="line"></span><br><span class="line"><span class="section">kernel_modules:</span></span><br><span class="line">	make -C /lib/modules/${KERNEL_VERSION}/build/ M=${CURDIR} modules</span><br><span class="line"></span><br><span class="line"><span class="section">test_run:</span></span><br><span class="line">	gcc -o test_run test_run.c</span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	make -C /lib/modules/${KERNEL_VERSION}/build M=${CURDIR} clean; \</span><br><span class="line">	rm -rf ${CURDIR}/test_run</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/CFWLoader/Toys/tree/master/SystemCall/64bit">完整源码</a>再此。</p>
+<h2 id="编译加载运行"><a href="#编译加载运行" class="headerlink" title="编译加载运行"></a>编译加载运行</h2><p>在目录下执行:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make</span><br></pre></td></tr></table></figure>
+<p>即会产生目标文件，随后执行加载模块命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo insmod ProcessTree.ko</span><br></pre></td></tr></table></figure>
+<p>查看加载模块信息:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo dmesg</span><br></pre></td></tr></table></figure>
+<p>例如，在这个例子中会看到如下输出:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[18128.569537] Evan's System call successfully added.</span><br><span class="line">[18128.569540] System call's address: ffffffffa5a00200. TASK_COMM_LEN's value: 16.</span><br></pre></td></tr></table></figure>
+<p>执行用户态程序，顺利的话，会得到运行结果，输出太长了就不贴了。</p>
+<p>再用<code>dmesg</code>可以看到:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[18158.067630] Evan's system call is executing.</span><br></pre></td></tr></table></figure>
+<p>表明这个系统调用成功执行了。</p>
+<p>卸载模块:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo rmmod ProcessTree</span><br></pre></td></tr></table></figure>
+<p>再用<code>dmesg</code>查看:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[18190.508284] Evan's system call exited.</span><br></pre></td></tr></table></figure>
+<p>模块卸载了，系统调用表也还原了。</p>
+<p>动态修改系统调用表的尝试至此为止了。之前在用32位的代码做实验的时候挺顺利的，后来想想在64位机上理论上也可以做到同样的效果，将代码改为支持64的汇编还好。中间是卡在了之前添加系统调用的设想上，明明获取了正确的系统调用表内存地址，<code>dmesg</code>也表明修改成功了，但是在用户态调用添加的333号调用上老是报错函数未实现，但是直接替换系统当前已有的332号就可以。所以猜想系统中应该存在类似<code>NR_syscalls</code>这类变量控制好系统调用表的边界，然而动用了<code>Google</code>搜索引擎也没找到期望的结果，只能放弃了。</p>
+<p>从这个实验看，<code>Linux</code>系统的安全性也越来越好了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2017/11/24/Linux%E5%8A%A8%E6%80%81%E5%A2%9E%E5%88%A0%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" data-id="clximfz6q001r7kkv4s2e9rm2" data-title="Linux动态增删系统调用" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/11/29/Fedora-25%E9%85%8D%E7%BD%AE%E8%B5%84%E6%96%99%E6%95%B4%E5%90%88/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Fedora 25配置资料整合
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/11/23/FP-growth%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">FP-growth算法实现</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

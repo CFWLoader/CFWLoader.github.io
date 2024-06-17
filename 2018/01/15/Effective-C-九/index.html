@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Effective C++(九) | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="继承与面向对象设计这个主题内容比较多，在进入下一个主题前需要一篇新的文章放下剩余的内容。 条款36:绝不重新定义继承而来的non-virtual函数这个条款用个例子就能说明: 12345678910111213141516171819202122232425262728293031323334353637383940class Base{public:	void mf()	{		cout &lt;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Effective C++(九)">
+<meta property="og:url" content="https://cfwloader.github.io/2018/01/15/Effective-C-%E4%B9%9D/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="继承与面向对象设计这个主题内容比较多，在进入下一个主题前需要一篇新的文章放下剩余的内容。 条款36:绝不重新定义继承而来的non-virtual函数这个条款用个例子就能说明: 12345678910111213141516171819202122232425262728293031323334353637383940class Base{public:	void mf()	{		cout &lt;">
+<meta property="og:locale" content="zh_ZN">
+<meta property="og:image" content="https://cfwloader.github.io/2018/01/15/Effective-C-%E4%B9%9D/inher0.jpg">
+<meta property="article:published_time" content="2018-01-15T08:53:31.000Z">
+<meta property="article:modified_time" content="2024-06-17T03:11:12.088Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="C++11">
+<meta property="article:tag" content="Effective C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cfwloader.github.io/2018/01/15/Effective-C-%E4%B9%9D/inher0.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Effective-C-九" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/01/15/Effective-C-%E4%B9%9D/" class="article-date">
+  <time class="dt-published" datetime="2018-01-15T08:53:31.000Z" itemprop="datePublished">2018-01-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Effective C++(九)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><code>继承与面向对象设计</code>这个主题内容比较多，在进入下一个主题前需要一篇新的文章放下剩余的内容。</p>
+<h2 id="条款36-绝不重新定义继承而来的non-virtual函数"><a href="#条款36-绝不重新定义继承而来的non-virtual函数" class="headerlink" title="条款36:绝不重新定义继承而来的non-virtual函数"></a>条款36:绝不重新定义继承而来的non-virtual函数</h2><p>这个条款用个例子就能说明:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		cout &lt;&lt; <span class="string">"Base::mf()"</span> &lt;&lt; endl;</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		cout &lt;&lt; <span class="string">"Derived::mf()"</span> &lt;&lt; endl;</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">call</span><span class="params">(Base&amp; base)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	cout &lt;&lt; <span class="string">"in call():  "</span>;</span><br><span class="line">	base.<span class="built_in">mf</span>();</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	Derived d;</span><br><span class="line"></span><br><span class="line">	Base* pb = &amp;d;</span><br><span class="line"></span><br><span class="line">	Derived* pd = &amp;d;</span><br><span class="line"></span><br><span class="line">	pb-&gt;<span class="built_in">mf</span>();</span><br><span class="line"></span><br><span class="line">	pd-&gt;<span class="built_in">mf</span>();</span><br><span class="line"></span><br><span class="line">	<span class="built_in">call</span>(d);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>编译运行，得到:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Base::mf()</span><br><span class="line">Derived::mf()</span><br><span class="line">in call():  Base::mf()</span><br></pre></td></tr></table></figure>
+<p>也就是说调用哪个版本的函数是由当前持有对象的<code>holder</code>(中文笔者不知道如何表达，代之指针或者普通变量)的类型决定。这个现象是可以通过<code>C++对象模型</code>来解释的，不过重点是这样的设计不符合<code>多态</code>的原则，容易造成误用。</p>
+<p>其根源就是里面所有的表达式都是在编译期完成决议的，所有都是<code>静态绑定</code>，以下是静态绑定的定义:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">静态绑定是指在程序编译过程中，把函数（方法或者过程）调用与响应调用所需的代码结合的过程称之为静态绑定。</span><br></pre></td></tr></table></figure>
+
+<p>总之如果一个函数是non-virtual的，该类的子类就不要重新定义该函数，避免后续的错误。</p>
+<h2 id="条款37-绝不重新定义继承而来的缺省参数值"><a href="#条款37-绝不重新定义继承而来的缺省参数值" class="headerlink" title="条款37:绝不重新定义继承而来的缺省参数值"></a>条款37:绝不重新定义继承而来的缺省参数值</h2><p>在开始该条款之前，读者应该了解:</p>
+<ul>
+<li>静态绑定，又名<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Name_binding">前期绑定</a></li>
+<li>动态绑定，又名<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Late_binding">后期绑定</a></li>
+</ul>
+<p>这个条款要介绍的矛盾是由于<code>缺省参数值</code>是<code>静态绑定</code>而<code>virtual函数</code>是<code>动态绑定</code>引起的。用书上的例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">ShapeColor</span>{RED, GREEN, BLUE};	<span class="comment">// 图形颜色</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 几何图形的基本类</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Shape</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">draw</span><span class="params">(ShapeColor color = ShapeColor::RED)</span> <span class="type">const</span>	<span class="comment">// 所有的形状都有一个描绘的函数</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		cout &lt;&lt; <span class="string">"Calling Shape::draw(ShapeColor="</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">switch</span>(color)		<span class="comment">// 加个判断，用于判定输入的参数的实际值</span></span><br><span class="line">		{</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::RED : cout &lt;&lt; <span class="string">"RED)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::GREEN : cout &lt;&lt; <span class="string">"GREEN)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::BLUE : cout &lt;&lt; <span class="string">"BLUE)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Rectangle</span> : <span class="keyword">public</span> Shape</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">draw</span><span class="params">(ShapeColor color = GREEN)</span> <span class="type">const</span> <span class="comment">// 覆写了父类的函数</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		cout &lt;&lt; <span class="string">"Calling Rectangle::draw(ShapeColor="</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">switch</span>(color)		<span class="comment">// 加个判断，用于判定输入的参数的实际值</span></span><br><span class="line">		{</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::RED : cout &lt;&lt; <span class="string">"RED)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::GREEN : cout &lt;&lt; <span class="string">"GREEN)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::BLUE : cout &lt;&lt; <span class="string">"BLUE)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Circle</span> : <span class="keyword">public</span> Shape</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">draw</span><span class="params">(ShapeColor color)</span> <span class="type">const</span>		<span class="comment">// 这个子类强制用户输入颜色</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		cout &lt;&lt; <span class="string">"Calling Circle::draw(ShapeColor="</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">switch</span>(color)		<span class="comment">// 加个判断，用于判定输入的参数的实际值</span></span><br><span class="line">		{</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::RED : cout &lt;&lt; <span class="string">"RED)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::GREEN : cout &lt;&lt; <span class="string">"GREEN)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> ShapeColor::BLUE : cout &lt;&lt; <span class="string">"BLUE)"</span>  &lt;&lt; endl;<span class="keyword">break</span>;</span><br><span class="line">		}</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="comment">// 三个变量都是Shape*静态类型</span></span><br><span class="line">	Shape* ps;</span><br><span class="line"></span><br><span class="line">	Shape* pc = <span class="keyword">new</span> Circle;			<span class="comment">// 指向实际类型为Circle</span></span><br><span class="line"></span><br><span class="line">	Shape* pr = <span class="keyword">new</span> Rectangle;		<span class="comment">// 指向实际类型为Rectangle</span></span><br><span class="line"></span><br><span class="line">	pc-&gt;<span class="built_in">draw</span>();</span><br><span class="line"></span><br><span class="line">	pr-&gt;<span class="built_in">draw</span>();</span><br><span class="line"></span><br><span class="line">	ps = pc;						<span class="comment">// ps的动态类型是Circle</span></span><br><span class="line"></span><br><span class="line">	ps-&gt;<span class="built_in">draw</span>();</span><br><span class="line"></span><br><span class="line">	ps = pr;						<span class="comment">// ps的动态类型是Rectangle</span></span><br><span class="line"></span><br><span class="line">	ps-&gt;<span class="built_in">draw</span>();</span><br><span class="line"></span><br><span class="line">	Circle* cpc = <span class="keyword">new</span> Circle;		<span class="comment">// 对照组，用于对比静态类型为子类的情况</span></span><br><span class="line"></span><br><span class="line">    cpc-&gt;<span class="built_in">draw</span>(ShapeColor::BLUE);</span><br><span class="line"></span><br><span class="line">    Rectangle* rpr = <span class="keyword">new</span> Rectangle;</span><br><span class="line"></span><br><span class="line">    rpr-&gt;<span class="built_in">draw</span>();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>运行得到:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Calling Circle::draw(ShapeColor=RED)</span><br><span class="line">Calling Rectangle::draw(ShapeColor=RED)</span><br><span class="line">Calling Circle::draw(ShapeColor=RED)</span><br><span class="line">Calling Rectangle::draw(ShapeColor=RED)</span><br><span class="line">Calling Circle::draw(ShapeColor=BLUE)</span><br><span class="line">Calling Rectangle::draw(ShapeColor=GREEN)</span><br></pre></td></tr></table></figure>
+<p>这个现象中，所有的<code>多态</code>表现正确。<code>ps</code>、<code>pc</code>、<code>pr</code>三个指针的静态类型都是<code>Shape*</code>，但是分别指向了<code>Circle</code>和<code>Rectangle</code>实例，上面的输出显示都根据其动态类型成功地调用了实际类型中的<code>draw</code>函数。但是一方面又很奇怪，缺省参数值是根据<code>静态类型</code>来决议的，在静态类型是<code>Shape*</code>的情况下，所有的缺省参数值都采用了<code>Shape::draw</code>的版本，不受实际类型的影响。甚至连<code>Circle::draw</code>本身不具有<code>缺省参数</code>也采用了父类的版本。</p>
+<p>笔者原本以为会引起编译错误，但是仔细想了想也是合理的，首先静态编译期就根据变量类型决议了<code>缺省参数</code>的版本，并不影响其运行时。</p>
+<p>书上也给出了解决这个问题的技巧，这样的做法并不提倡，因而笔者就不给出方法了。遇到这样的问题更应该从设计上来解决，避免总是用技巧，总体原则就是不要在<code>virtual函数</code>里面施加太多的约束，留有灵活性使得子类继承时方便修改。</p>
+<h2 id="条款38-通过复合塑模出has-a或者”根据某物实现出”"><a href="#条款38-通过复合塑模出has-a或者”根据某物实现出”" class="headerlink" title="条款38:通过复合塑模出has-a或者”根据某物实现出”"></a>条款38:通过复合塑模出has-a或者”根据某物实现出”</h2><p>该条款并不是编程方面的问题，而是有关<code>概念</code>以及<code>设计</code>的问题，例如书上说的”人有一个住址”:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	...</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	Address address;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>而不是”人是一个住址”:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span> : <span class="keyword">public</span> Address</span><br><span class="line">{...};</span><br></pre></td></tr></table></figure>
+<p>这个是编程人员对所需要实现的软件的认知引起的问题，当然这个例子是很简单的，书上既然给出了这个条款，那么也是提示读者要注重概念上的问题，否则因为这种与编程无关的事情增加了复杂度那就太浪费人力了。正如上面这个”人是一个住址”错误的示例，读者可以想想这样的设计，在把一个<code>Person</code>实例<code>持久化</code>到数据库的时候，<code>Address表</code>和<code>Person表</code>的关系，以及<code>sql语句</code>的设计。</p>
+<p>然后就是<code>is-a</code>和<code>is-implemented-in-terms-of</code>的区分问题。在编程里面，<code>集合</code>和<code>列表</code>是两种不同概念的数据结构，书上给的例子是复用<code>列表</code>实现<code>集合</code>:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Set</span> : <span class="keyword">public</span> std::list&lt;T&gt;</span><br><span class="line">{...};</span><br></pre></td></tr></table></figure>
+<p>这样基本上可不用写多少代码就实现了功能，但是<code>集合</code>是不允许集合的重复的而<code>列表</code>允许，也就是说产生了概念冲突。</p>
+<p>但是如果<code>集合</code>仅仅是借<code>列表</code>来实现的话:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Set</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	...</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">insert</span><span class="params">(<span class="type">const</span> T&amp; item)</span></span>;</span><br><span class="line">	...</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	std::list&lt;T&gt; container;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="type">void</span> Set&lt;T&gt;::<span class="built_in">insert</span>(<span class="type">const</span> T&amp; item)</span><br><span class="line">{</span><br><span class="line">	...		<span class="comment">// 加入集合前判断元素是否唯一等概念上的操作</span></span><br><span class="line">	containter.<span class="built_in">insert</span>(item);	<span class="comment">// 实际插入操作</span></span><br><span class="line">	...		<span class="comment">// 其他处理等</span></span><br><span class="line">}</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>这样就解决了<code>Set</code>不是<code>list</code>这个概念上的问题，因为这个<code>Set</code>是”根据list实现出”来的。</p>
+<p>这个条款笔者认为没有太多技术上的东西，更多的是编程人员的基础概念认知的知识问题。</p>
+<h2 id="条款39-明智而审慎地使用private继承"><a href="#条款39-明智而审慎地使用private继承" class="headerlink" title="条款39:明智而审慎地使用private继承"></a>条款39:明智而审慎地使用private继承</h2><p>该条款提到了:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/buxizhizhou530/article/details/45888203">空白基类最优化,empty base optimization,EBO</a></li>
+</ul>
+<p>笔者没有该条款的实践，毕竟<code>private继承</code>在实际应用中太少了，少到几乎没有见到过。</p>
+<p><code>private继承</code>意味<code>implemented-in-terms-of</code>关系。</p>
+<p>例如书上的例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Timer</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">explicit</span> <span class="title">Timer</span><span class="params">(<span class="type">int</span> tickFrequency)</span></span>;		<span class="comment">// 设定计时器频率</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">onTick</span><span class="params">()</span> <span class="type">const</span></span>;			<span class="comment">// 周期性事件</span></span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>然后一个<code>Widget</code>需要定时器功能，但是显然<code>Widget</code>不是一个<code>Timer</code>，需要表现出<code>is-implemented-in-terms-of</code>关系才能符合常用逻辑，也就是<code>Widget</code>的<code>定时事件</code>功能是<code>根据Time实现</code>的:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Widget</span> : <span class="keyword">private</span> Timer</span><br><span class="line">{</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">onTick</span><span class="params">()</span> <span class="type">const</span></span>;			<span class="comment">// 周期性事件</span></span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>这样看起来乖乖的，明明是一种<code>继承</code>语法，却是表现不出<code>is-a</code>关系设计的实现。这就是为何private继承罕见的原因了。也可以改进为一种更加符合阅读理解的表现形式:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Widget</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	...</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="keyword">class</span> <span class="title class_">WidgetTimer</span> : <span class="keyword">public</span> Timer 		<span class="comment">// 为Widget专门定制的Timer</span></span><br><span class="line">	{										<span class="comment">// 内部类，无法从外部创建实例</span></span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">		<span class="keyword">virtual</span> <span class="type">void</span> onTick <span class="type">const</span>;</span><br><span class="line">		...</span><br><span class="line">	};</span><br><span class="line"></span><br><span class="line">	WidgetTimer timer;						<span class="comment">// Widget的定时器功能就根据这个定制的Timer实现</span></span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>第二种做法还有用到的地方，起码这种实现方式容易让人理解。介绍这个条款并不是推广这种private继承的技巧，而是别无他法的时候才采纳这个实现方案。</p>
+<h2 id="条款40-明智而审慎地使用多重继承"><a href="#条款40-明智而审慎地使用多重继承" class="headerlink" title="条款40:明智而审慎地使用多重继承"></a>条款40:明智而审慎地使用多重继承</h2><p>多重继承(Multiple Inheritance，MI)是<code>C++</code>其中一把很著名的双刃剑，一方面给<code>C++</code>带来了丰富灵活的继承语法，另一方面又给<code>C++</code>的继承带来混乱。其中为了解决这个混乱，<code>Java</code>只允许<code>单一继承</code>，解决了不少问题，而且引入了<code>接口(interface)</code>关键字弥补灵活性的缺失。</p>
+<p>首先:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base2</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base1, Base2</span><br><span class="line">{</span><br><span class="line">...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>这样的话，当发生:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Derived d;</span><br><span class="line"></span><br><span class="line">d.<span class="built_in">f</span>();</span><br></pre></td></tr></table></figure>
+<p>就引起了歧义，引起编译错误。为了消除歧义，必须这样指定:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d.Base1::<span class="built_in">f</span>();</span><br></pre></td></tr></table></figure>
+<p>明确调用哪个版本。</p>
+<p>接下来就是<code>菱形继承问题</code>:<br><img src="/2018/01/15/Effective-C-%E4%B9%9D/inher0.jpg"><br>写段代码测试:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">A</span>()</span><br><span class="line">	{</span><br><span class="line">		cout &lt;&lt; <span class="string">"A::A("</span> &lt;&lt; <span class="keyword">this</span> &lt;&lt; <span class="string">")"</span> &lt;&lt; endl;</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">B</span>()</span><br><span class="line">	{</span><br><span class="line">		cout &lt;&lt; <span class="string">"B::B("</span> &lt;&lt; <span class="keyword">this</span> &lt;&lt; <span class="string">")"</span> &lt;&lt; endl;</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">C</span> : <span class="keyword">public</span> A</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">C</span>()</span><br><span class="line">	{</span><br><span class="line">		cout &lt;&lt; <span class="string">"C::C("</span> &lt;&lt; <span class="keyword">this</span> &lt;&lt; <span class="string">")"</span> &lt;&lt; endl;</span><br><span class="line">	}</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span> : <span class="keyword">public</span> B, <span class="keyword">public</span> C</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">D</span>()</span><br><span class="line">	{</span><br><span class="line">		cout &lt;&lt; <span class="string">"D::D("</span> &lt;&lt; <span class="keyword">this</span> &lt;&lt; <span class="string">")"</span> &lt;&lt; endl;</span><br><span class="line">	}</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>实例化一个<code>D</code>对象时，程序输出:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">A::A(0x7ffecb763bce)</span><br><span class="line">B::B(0x7ffecb763bce)</span><br><span class="line">A::A(0x7ffecb763bcf)</span><br><span class="line">C::C(0x7ffecb763bcf)</span><br><span class="line">D::D(0x7ffecb763bce)</span><br></pre></td></tr></table></figure>
+<p>也就是说一个<code>D</code>实例中的有两份<code>A</code>实例，一份是属于<code>B</code>的<code>A</code>以及一份属于<code>C</code>的<code>A</code>。</p>
+<p>为了解决这样不统一的问题，可以用<code>virtual继承</code>:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">{...};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> A</span><br><span class="line">{...};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">C</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> A</span><br><span class="line">{...};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span> : <span class="keyword">public</span> B, <span class="keyword">public</span> C</span><br><span class="line">{...};</span><br></pre></td></tr></table></figure>
+<p>这样实例化一个<code>D</code>对象时，程序输出:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">A::A(0x7fffdd669580)</span><br><span class="line">B::B(0x7fffdd669580)</span><br><span class="line">C::C(0x7fffdd669588)</span><br><span class="line">D::D(0x7fffdd669580)</span><br></pre></td></tr></table></figure>
+<p>这样就能够处理好<code>公共爷类</code>的问题了。考虑到继承树下面可能会有<code>D</code>的子类也出现这样的情况，所有的继承应用<code>virtual继承</code>防止，然而这样会使得实例占用的内存膨胀，也就是说<code>virtual继承</code>最好不要滥用。</p>
+<p>作者在书上给出的建议，笔者认为就是<code>Java</code>的<code>单一继承</code>和<code>多实现</code>。也就是说约束继承语法使得程序只有<code>单一继承</code>原则，而灵活性由<code>接口</code>的多继承来补充，关于<code>接口</code>笔者在条款34中介绍过。</p>
+<p>具体的做法，读者们可以去写写<code>Java</code>的<code>继承</code>和<code>接口</code>，就能总结出在<code>C++</code>中怎么写了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2018/01/15/Effective-C-%E4%B9%9D/" data-id="clximfz6j000a7kkv850g8qh2" data-title="Effective C++(九)" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/17/Effective-C-%E5%8D%81/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Effective C++(十)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/04/Effective-C-%E5%85%AB/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Effective C++(八)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

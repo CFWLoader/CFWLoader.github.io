@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Effective C++(七) | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="从这里开始进入实现主题，在此之前先区分好声明和定义，对于这两者的概念，笔者从网上摘抄下来: 12345678910111213141516171819声明(declaration)指定了一个变量的标识符，用来描述变量的类型，是类型还是对象，或者函数等。声明，用于编译器(compiler)识别变量名所引用的实体。以下这些就是声明:extern int bar;extern int g(int, in">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Effective C++(七)">
+<meta property="og:url" content="https://cfwloader.github.io/2017/12/21/Effective-C-%E4%B8%83/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="从这里开始进入实现主题，在此之前先区分好声明和定义，对于这两者的概念，笔者从网上摘抄下来: 12345678910111213141516171819声明(declaration)指定了一个变量的标识符，用来描述变量的类型，是类型还是对象，或者函数等。声明，用于编译器(compiler)识别变量名所引用的实体。以下这些就是声明:extern int bar;extern int g(int, in">
+<meta property="og:locale" content="zh_ZN">
+<meta property="article:published_time" content="2017-12-21T02:28:18.000Z">
+<meta property="article:modified_time" content="2024-06-17T06:40:29.700Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="C++11">
+<meta property="article:tag" content="Effective C++">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Effective-C-七" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/12/21/Effective-C-%E4%B8%83/" class="article-date">
+  <time class="dt-published" datetime="2017-12-21T02:28:18.000Z" itemprop="datePublished">2017-12-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Effective C++(七)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>从这里开始进入<code>实现</code>主题，在此之前先区分好<code>声明</code>和<code>定义</code>，对于这两者的概念，笔者从网上摘抄下来:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">声明(declaration)指定了一个变量的标识符，用来描述变量的类型，是类型还是对象，或者函数等。声明，用于编译器(compiler)识别变量名所引用的实体。以下这些就是声明:</span><br><span class="line"></span><br><span class="line">extern int bar;</span><br><span class="line"></span><br><span class="line">extern int g(int, int);</span><br><span class="line"></span><br><span class="line">double f(int, double); // 对于函数声明，extern关键字是可以省略的。</span><br><span class="line"></span><br><span class="line">class foo; // 类的声明，前面是不能加class的。</span><br><span class="line"></span><br><span class="line">定义(definition)是对声明的实现或者实例化。连接器(linker)需要它(定义)来引用内存实体。与上面的声明相应的定义如下:</span><br><span class="line"></span><br><span class="line">int bar;</span><br><span class="line"></span><br><span class="line">int g(int lhs, int rhs) {return lhs*rhs;} </span><br><span class="line"></span><br><span class="line">double f(int i, double d) {return i+d;} </span><br><span class="line"></span><br><span class="line">class foo {};// foo</span><br></pre></td></tr></table></figure>
+<p>带着这个基础知识，开始介绍本主题的内容。</p>
+<h2 id="条款26-尽可能延后变量定义式的出现时间"><a href="#条款26-尽可能延后变量定义式的出现时间" class="headerlink" title="条款26:尽可能延后变量定义式的出现时间"></a>条款26:尽可能延后变量定义式的出现时间</h2><p>在大规模的软件项目出现之前，良好的编程习惯是，在该作用域的开始，就把所需要的变量声明以及定义好，这样后面的代码就集中于处理逻辑，代码组织也在某种程度上符合审美标准。但是现在推荐的做法是将在需要该变量前的一刻才定义这个变量，特别是一些涉及到要根据if-else逻辑产生的变量，书上就给出了一个很好的例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::string <span class="title">encryptPassword</span><span class="params">(<span class="type">const</span> std::string&amp; password)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line">	<span class="keyword">if</span>(password.<span class="built_in">length</span>() &lt; MINIMUM_PASSWORD_LENGTH)</span><br><span class="line">	{</span><br><span class="line">		<span class="keyword">throw</span> <span class="built_in">logic_error</span>(<span class="string">"Password is too short"</span>);</span><br><span class="line">	}</span><br><span class="line">	... <span class="comment">// 还有一些针对密码的规定的if-else处理进来的明文。</span></span><br><span class="line"></span><br><span class="line">	<span class="function">string <span class="title">encrypted</span><span class="params">(password)</span></span>;				<span class="comment">// 通过检查，可以加密原文了。</span></span><br><span class="line">	<span class="built_in">encrypt</span>(encrypted);						<span class="comment">// 加密操作。</span></span><br><span class="line">	<span class="keyword">return</span> encrypted;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>当涉及到循环的时候，来看看怎么写:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方法A:定义于循环外</span></span><br><span class="line">Widget w;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</span><br><span class="line">{</span><br><span class="line">	w = 取决于i的某个值;</span><br><span class="line">	...</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>这样的开销是: 一次构造 + 一次析构 + n次赋值。</p>
+<p>再来看看:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方法B:定义于循环内</span></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</span><br><span class="line">{</span><br><span class="line">	<span class="function">Widget <span class="title">w</span><span class="params">(取决于i的某个值)</span></span>;</span><br><span class="line">	...</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>开销: n次构造 + n次析构。</p>
+<p>然后对比的就是构造+析构和赋值的开销了，根据场景取舍。</p>
+<h2 id="条款27-尽量少做转型动作"><a href="#条款27-尽量少做转型动作" class="headerlink" title="条款27:尽量少做转型动作"></a>条款27:尽量少做转型动作</h2><p>在开始讨论这个条款之前，先介绍转型语法，首先旧式的转型:</p>
+<ul>
+<li><code>(T)expression</code>，C风格转型动作。</li>
+<li><code>T(expression)</code>，函数风格的转型动作。</li>
+</ul>
+<p><code>C++</code>提供4中新的转型动作:</p>
+<ul>
+<li><code>const_cast&lt;T&gt;(expression)</code>，移除对象的常量性(cast away the constness)。</li>
+<li><code>dynamic_cast&lt;T&gt;(expression)</code>，将一个父类对象<code>安全向下转型(safe downcasting)</code>为继承体系下的某个子类型。</li>
+<li><code>reinterpret_cast&lt;T&gt;(expression)</code>，执行低级转型，实际动作和结果取决于编译器，使得程序变得不可移植。例如将<code>pointer to int</code>转为一个<code>int</code>。</li>
+<li><code>static_cast&lt;T&gt;(expression)</code>，强迫隐式转换，笔者认为效果等同与上述两种旧式转型，但是无法去除对象的常量性。</li>
+</ul>
+<p>介绍完转型语法之后，书上也讲了不少转型的例子和分析，但是总的来讲就是程序设计不佳，使得在使用这份代码的时候不得不进行一些类型转换。在实际应用中，<code>static_cast</code>大多数用于基础类型的转换，例如<code>int</code>转换成<code>float</code>等;<code>const_cast</code>这种移除常量性的需求笔者尚未遇到过;<code>dynamic_cast</code>的使用表征着这个继承体系的基类成员接口没有设计好，笔者也只是在少数情况下才采用这个转型;<code>reinterpret_cast</code>估计只有写嵌入式程序方面的人才有可能用到。</p>
+<p><code>dynamic_cast</code>的问题一般很好解决，例如连串:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Window</span>{...};</span><br><span class="line">...	<span class="comment">// Window的子类定义。</span></span><br><span class="line"><span class="keyword">typedef</span> std::vector&lt;std::shared_ptr&lt;Window&gt;&gt; VPW;</span><br><span class="line">VPW winPtrs;</span><br><span class="line">...</span><br><span class="line"><span class="keyword">for</span> (VPW::iterator iter = winPtrs.<span class="built_in">begin</span>();</span><br><span class="line">		iter != winPtrs.<span class="built_in">end</span>(); ++iter)</span><br><span class="line">{</span><br><span class="line">	<span class="keyword">if</span>(SpecialWindow1 * psw1 = <span class="built_in">dynamic_cast</span>&lt;SpecialWindow1*&gt;(iter-&gt;<span class="built_in">get</span>())) {...}</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span>(SpecialWindow2 * psw2 = <span class="built_in">dynamic_cast</span>&lt;SpecialWindow2*&gt;(iter-&gt;<span class="built_in">get</span>())) {...}</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span>(SpecialWindow3 * psw3 = <span class="built_in">dynamic_cast</span>&lt;SpecialWindow3*&gt;(iter-&gt;<span class="built_in">get</span>())) {...}</span><br><span class="line">	...</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>那证明这个体系中，其子类共有的操作可以成为基类中的虚函数，是类型设计上的问题。</p>
+<p>尽量避免使用转型，如果非转型不可，也尽可能使用新式转型语法。</p>
+<p>不过考虑到现今的<code>C++</code>项目大多数开始都是老项目，而轻易修改老项目原代码是大忌，所以这些转型还是看着点用。</p>
+<h2 id="条款28-避免返回handles指向对象内部成分"><a href="#条款28-避免返回handles指向对象内部成分" class="headerlink" title="条款28:避免返回handles指向对象内部成分"></a>条款28:避免返回handles指向对象内部成分</h2><p>这一条笔者认为与<code>条款22</code>有强烈联系，属于<code>面向对象</code>的设计原则之一，例如:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Rational</span>          <span class="comment">// 有理数类</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">        <span class="built_in">Rational</span>(<span class="type">int</span> numerator = <span class="number">0</span>, <span class="type">int</span> denominator = <span class="number">1</span>);</span><br><span class="line">        <span class="function"><span class="type">int</span> <span class="title">numerator</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">        <span class="function"><span class="type">int</span> <span class="title">denominator</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">        <span class="type">const</span> Rational <span class="keyword">operator</span>* (<span class="type">const</span> Rational&amp; rhs) <span class="type">const</span>;   <span class="comment">// 用于支持有理数相乘</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">        ...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>既然已经把数据与类成员函数绑定在了一起，原本已经声明了成员变量都是<code>private</code>，那么如果返回指向对象内部的handles(引用，指针，迭代器等)，那就相当于破坏了封装性，<code>getters</code>和<code>setters</code>形同虚设，使用者可以绕开这些设定好的接口和约束直接修改内部成员，极有可能破坏既定的行为。</p>
+<p>因此，在没有特别的理由支持下，保持封装性比开放访问性是个更好的选择。</p>
+<h2 id="条款29-为“异常安全”而努力是值得的"><a href="#条款29-为“异常安全”而努力是值得的" class="headerlink" title="条款29:为“异常安全”而努力是值得的"></a>条款29:为“异常安全”而努力是值得的</h2><p>正如这个系列刚开始，笔者探讨<code>C with class</code>的问题时提出的场景一样，如果程序动不动就要处理错误，那么为了处理这些错误，可以写出比原来为了满足需求而实现的代码长好几倍的代码。笔者尚未经历过<code>C++</code>老项目的维护，但是从其他项目的经验来看，异常处理这一部分并不会特别关注。一个是由于各种框架的出现，使得底层设施这种复用性高，又是关键部分的代码已经得到了很好的异常处理，而使用者仅仅处理业务层的代码，框架一般也提供了事务机制，这就使得使用者只需要在发生错误的时候回滚就行了;二是异常本来就不应该是频发的程序场景，如果一个程序中运行频繁地出现异常，要么就是运行环境太差，要么就是编程人员基础太差。</p>
+<p>不过为了满足程序的健壮性，一些异常处理仍然是必须的，但是要处理到何种程度，笔者也不能给出评价标准，毕竟笔者也见过没有任何异常处理的程序稳定运行的案例。如果是在实际项目中，功能的实现是第一目标，异常处理是辅助手段。</p>
+<p>书上定义了带有<code>异常安全性</code>的函数该有的行为，即异常被抛出的时候:</p>
+<ol>
+<li>不泄漏任何资源。</li>
+<li>不允许数据败坏。</li>
+</ol>
+<p>为了满足这两个行为，笔者给出socket编程中的经典例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Initialize server parameters.</span></span><br><span class="line">listenFileDescriptor = <span class="built_in">socket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">bzero</span>(&amp;serverAddr, <span class="built_in">sizeof</span>(serverAddr));</span><br><span class="line"></span><br><span class="line">serverAddr.sin_family = AF_INET;</span><br><span class="line">serverAddr.sin_addr.s_addr = <span class="built_in">htonl</span>(INADDR_ANY);</span><br><span class="line">serverAddr.sin_port = <span class="built_in">htons</span>(SERVER_PORT);</span><br><span class="line"><span class="comment">// Parameters set. Injecting the server parameters to system.</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">bind</span>(listenFileDescriptor, (sockaddr*) &amp;serverAddr, <span class="built_in">sizeof</span>(serverAddr));</span><br><span class="line"></span><br><span class="line"><span class="built_in">listen</span>(listenFileDescriptor, LISTEN_QUEUE);</span><br><span class="line"><span class="comment">// Server initialization finished.</span></span><br></pre></td></tr></table></figure>
+<p>里面的<code>socket</code>、<code>bind</code>、<code>listen</code>函数都有可能因为系统资源的不足而初始化失败，虽然这里没有用到<code>C++</code>的异常语法，但是也能代表为了满足异常处理要怎么写:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Initialize server parameters.</span></span><br><span class="line">listenFileDescriptor = <span class="built_in">socket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(listenFileDescriptor &lt; <span class="number">0</span>)</span><br><span class="line">{</span><br><span class="line">	<span class="comment">//	可以输出一些错误提示。</span></span><br><span class="line">	<span class="keyword">return</span> ERROR_CODE_SOCKET;	<span class="comment">//	或者调用exit等。</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="built_in">bzero</span>(&amp;serverAddr, <span class="built_in">sizeof</span>(serverAddr));</span><br><span class="line"></span><br><span class="line">serverAddr.sin_family = AF_INET;</span><br><span class="line">serverAddr.sin_addr.s_addr = <span class="built_in">htonl</span>(INADDR_ANY);</span><br><span class="line">serverAddr.sin_port = <span class="built_in">htons</span>(SERVER_PORT);</span><br><span class="line"><span class="comment">// Parameters set. Injecting the server parameters to system.</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> ret_val = <span class="built_in">bind</span>(listenFileDescriptor, (sockaddr*) &amp;serverAddr, <span class="built_in">sizeof</span>(serverAddr));</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(ret_val != <span class="number">0</span>)</span><br><span class="line">{</span><br><span class="line">	<span class="comment">// 	错误提示。</span></span><br><span class="line">	<span class="built_in">close</span>(listenFileDescriptor);	<span class="comment">// 	因为初始化失败，要释放资源。</span></span><br><span class="line">	<span class="keyword">return</span> ERROR_CODE_BIND;			<span class="comment">// 	同理可以采用exit。</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">ret_val = <span class="built_in">listen</span>(listenFileDescriptor, LISTEN_QUEUE);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(ret_val != <span class="number">0</span>)</span><br><span class="line">{</span><br><span class="line">	<span class="comment">// 	错误提示。</span></span><br><span class="line">	<span class="built_in">close</span>(listenFileDescriptor);	<span class="comment">// 	因为初始化失败，要释放资源。</span></span><br><span class="line">	<span class="keyword">return</span> ERROR_CODE_LISTEN;			<span class="comment">// 	同理可以采用exit。</span></span><br><span class="line">}</span><br><span class="line"><span class="comment">// Server initialization finished.</span></span><br></pre></td></tr></table></figure>
+<p>为了作出上述的两个保证，代码不得不变长。</p>
+<p>异常安全函数(Exception-safe functions)提供以下三个保证之一:</p>
+<ol>
+<li><code>基本承诺</code>:如果异常被抛出，程序内的任何事物仍然保持在有效状态下。没有任何对象或数据结构会因此而败坏，所有对象都处于一中内部前后一致的状态。然而程序的现实状态(exact state)恐怕不可预料。</li>
+<li><code>强烈保证</code>:如果异常被抛出，程序状态不改变。如果函数成功则完全成功，如果失败则回滚，具体例子可以看看上面<code>Server Socket</code>初始化。</li>
+<li><code>不抛掷(nothrow)保证</code>:承诺绝不抛出异常，因为它们总是能够完成它们原先承诺的功能。作用于内置类型身上的所有操作都提供nothrow保证。</li>
+</ol>
+<p>看完了介绍的概念，笔者认为书上除了例子之外值得做笔记的地方就是<code>copy and swap</code>，具体方法是在作用于一个对象前先保存其副本，中途任何失败都放弃修改，返回修改前的对象副本。</p>
+<h2 id="条款30-透彻了解inlining的里里外外"><a href="#条款30-透彻了解inlining的里里外外" class="headerlink" title="条款30:透彻了解inlining的里里外外"></a>条款30:透彻了解inlining的里里外外</h2><p>关于该条款，笔者认为较为重要的是其:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">inline只是对编译器的一个申请，不是强制命令。</span><br></pre></td></tr></table></figure>
+<p>也就是说给一个函数加上<code>inline</code>关键字修饰时，编译器视该修饰为一个建议，不一定会对其进行代码展开。</p>
+<p>同时滥用<code>inline</code>会导致代码膨胀，甚至造成比不加<code>inline</code>时的效率更低的可能。</p>
+<p>书上建议将大多数inlining限制在小型、被频繁调用的函数上。因为被<code>inline</code>牵涉的函数的调用者在进行二进制升级的时候也会被牵连着更行。</p>
+<h2 id="条款31-将文件间的编译依存关系降至最低"><a href="#条款31-将文件间的编译依存关系降至最低" class="headerlink" title="条款31:将文件间的编译依存关系降至最低"></a>条款31:将文件间的编译依存关系降至最低</h2><p>有良好的编程习惯的程序员应该会习惯性地把一个类的声明以及其定义分开为两个文件。当类间呈现出<code>聚合</code>或者<code>组合</code>等关系时，被嵌入的类就要在包含它的类中声明，例如，设计一个基本的类:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Mem1</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">        <span class="built_in">Mem1</span>();</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">setIntMem</span><span class="params">(<span class="type">int</span> val)</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">setFloatMem</span><span class="params">(<span class="type">float</span> val)</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">int</span> <span class="title">getIntMem</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">float</span> <span class="title">getFloatMem</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">        <span class="type">int</span> intMem;</span><br><span class="line">        <span class="type">float</span> floatMem;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>然后外覆一个包裹器:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Wrapper</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">        <span class="built_in">Wrapper</span>();</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">setIntMem</span><span class="params">(<span class="type">int</span> val)</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">setFloatMem</span><span class="params">(<span class="type">float</span> val)</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">int</span> <span class="title">getIntMem</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">float</span> <span class="title">getFloatMem</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line"></span><br><span class="line">        Mem1 mem1;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>这个<code>Wrapper</code>的声明文件里面没有用到<code>Mem1</code>这个类的任何方法和成员，但是必须得获取得到<code>Mem.h</code>里面的内容，也就是该头文件里面必须包含这个<code>Mem1</code>类的头文件。如果使用编译命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ g++ -E Wrapper</span><br></pre></td></tr></table></figure>
+<p>可以看到:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"># 1 "Projects/ShallNotLiveLong/interlink/Wrapper.h"</span><br><span class="line"># 1 "&lt;built-in&gt;"</span><br><span class="line"># 1 "&lt;command-line&gt;"</span><br><span class="line"># 1 "/usr/include/stdc-predef.h" 1 3 4</span><br><span class="line"># 1 "&lt;command-line&gt;" 2</span><br><span class="line"># 1 "Projects/ShallNotLiveLong/interlink/Wrapper.h"</span><br><span class="line"># 1 "Projects/ShallNotLiveLong/interlink/Mem1.h" 1</span><br><span class="line">class Mem1</span><br><span class="line">{</span><br><span class="line">public:</span><br><span class="line"> Mem1();</span><br><span class="line"></span><br><span class="line"> void setIntMem(int val);</span><br><span class="line"></span><br><span class="line"> void setFloatMem(float val);</span><br><span class="line"></span><br><span class="line"> int getIntMem() const;</span><br><span class="line"></span><br><span class="line"> float getFloatMem() const;</span><br><span class="line">private:</span><br><span class="line"> int intMem;</span><br><span class="line"> float floatMem;</span><br><span class="line">};</span><br><span class="line"># 2 "Projects/ShallNotLiveLong/interlink/Wrapper.h" 2</span><br><span class="line"></span><br><span class="line">class Wrapper</span><br><span class="line">{</span><br><span class="line">public:</span><br><span class="line"> Wrapper();</span><br><span class="line"></span><br><span class="line"> void setIntMem(int val);</span><br><span class="line"></span><br><span class="line"> void setFloatMem(float val);</span><br><span class="line"></span><br><span class="line"> int getIntMem() const;</span><br><span class="line"></span><br><span class="line"> float getFloatMem() const;</span><br><span class="line">private:</span><br><span class="line"></span><br><span class="line"> Mem1 mem1;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>也就是说这个<code>Wrapper</code>的头文件需要读入整个<code>Mem1.h</code>的所有内容，然后再编译，当关系链很长的时候，处于末端的类的声明文件也就随之膨胀了。而且这个头文件里面也没有用到其包含的类的函数等接口。</p>
+<p>解决的方法是<code>前置声明</code>,也就是在该文件中先声明该类会包含那些类，但是不去获取其具体的声明(其实也可以叫类的定义，但是其成员函数没有定义，仅仅声明)。使用这个手法，则<code>Wrapper</code>的声明文件要这么写:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Mem1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Wrapper</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Wrapper</span>();</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">setIntMem</span><span class="params">(<span class="type">int</span> val)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">setFloatMem</span><span class="params">(<span class="type">float</span> val)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">int</span> <span class="title">getIntMem</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">float</span> <span class="title">getFloatMem</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line"></span><br><span class="line">	Mem1* mem1;</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p><font color="red">注意</font>:一一旦开始使用<code>前置声明</code>，那么这个被声明的类在该头文件中的实例只能被声明为该类的<font color="red">指针变量</font>或者<font color="red">引用</font>，否则该头文件仍然会要求读取被包含的类的定义。</p>
+<p>施用该手法之后，使用<code>g++ -E Wrapper.h</code>命令输出看展开后的文件，发现<code>Mem1</code>类的声明内容消失了，成功地把具体的内容向后移至<code>实现文件</code>以及<code>链接期</code>中。</p>
+<p>注意对于标准库，例如<code>std::string</code>等就不要吝啬这点编译空间了，一个是<code>std::string</code>是一个<code>typedef</code>而不是;第二是这个是标准库的内容，性能是经过考验的，要担心的还是自己的实现部分。</p>
+<p>该手法的缺点也存在的，第一点当然是指针的使用使得实现者不得不手动管理内存，或者引入智能指针等来管理这些动态分配的内容。</p>
+<p>这个条款后面也有介绍与这个手法组合起来相关的内容，例如<code>接口与实现分离</code>、<code>代理类</code>等与<code>设计模式</code>相关的概念，在这里就先不展开介绍了。</p>
+<p>总的来说，这个条款推荐的是用<code>声明式</code>取代<code>定义式</code>，使得编译的依存性最小化，同时也有避免编译出来的二进制文件发生不必要的代码膨胀的作用。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2017/12/21/Effective-C-%E4%B8%83/" data-id="clximfz6h00067kkv2bo9ed4f" data-title="Effective C++(七)" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/04/Effective-C-%E5%85%AB/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Effective C++(八)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/12/18/Effective-C-%E5%85%AD/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Effective C++(六)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

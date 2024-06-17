@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Effective C++(八) | CFWLoader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="这里开始进入到继承与面向对象设计主题。虽然这是Effective C++书上的内容，但是笔者认为这部分的知识不仅仅局限于语言，毕竟从上个世纪面向对象这个概念被提出之后就被普遍地实践，C++的前身也是因为要适应这股潮流才被创造出来的。 笔者认为面向对象这个思想更关注的是代码的逻辑结构符不符合人的直观感受，或者是经验感受，接下来开始介绍这个主题下的条款吧。 条款32:确定你的public继承塑模出is">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Effective C++(八)">
+<meta property="og:url" content="https://cfwloader.github.io/2018/01/04/Effective-C-%E5%85%AB/index.html">
+<meta property="og:site_name" content="CFWLoader">
+<meta property="og:description" content="这里开始进入到继承与面向对象设计主题。虽然这是Effective C++书上的内容，但是笔者认为这部分的知识不仅仅局限于语言，毕竟从上个世纪面向对象这个概念被提出之后就被普遍地实践，C++的前身也是因为要适应这股潮流才被创造出来的。 笔者认为面向对象这个思想更关注的是代码的逻辑结构符不符合人的直观感受，或者是经验感受，接下来开始介绍这个主题下的条款吧。 条款32:确定你的public继承塑模出is">
+<meta property="og:locale" content="zh_ZN">
+<meta property="article:published_time" content="2018-01-04T08:19:54.000Z">
+<meta property="article:modified_time" content="2024-06-17T03:11:12.088Z">
+<meta property="article:author" content="Evan Huang">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="C++11">
+<meta property="article:tag" content="Effective C++">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="CFWLoader" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CFWLoader</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">A man who codes for fun.</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Suche"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://cfwloader.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Effective-C-八" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/01/04/Effective-C-%E5%85%AB/" class="article-date">
+  <time class="dt-published" datetime="2018-01-04T08:19:54.000Z" itemprop="datePublished">2018-01-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Effective C++(八)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>这里开始进入到<code>继承与面向对象设计</code>主题。虽然这是<code>Effective C++</code>书上的内容，但是笔者认为这部分的知识不仅仅局限于语言，毕竟从上个世纪<code>面向对象</code>这个概念被提出之后就被普遍地实践，<code>C++</code>的前身也是因为要适应这股潮流才被创造出来的。</p>
+<p>笔者认为<code>面向对象</code>这个思想更关注的是代码的逻辑结构符不符合人的直观感受，或者是经验感受，接下来开始介绍这个主题下的条款吧。</p>
+<h2 id="条款32-确定你的public继承塑模出is-a关系"><a href="#条款32-确定你的public继承塑模出is-a关系" class="headerlink" title="条款32:确定你的public继承塑模出is-a关系"></a>条款32:确定你的public继承塑模出is-a关系</h2><p>省略书上开头的例子，第一个涉及到的有关OOP的概念是<code>里斯科夫替换原则(Liskov Substitution Principle,LSP)</code>,简称<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">里式替换原则</a>，这里再扩展一下<code>SOLID</code>原则，有兴趣的读者可以深入了解<code>https://en.wikipedia.org/wiki/SOLID_(object-oriented_design)</code>。LSP主要观点是“派生类（子类）对象能够替换其基类（超类）对象被使用”。假设有个继承关系<code>A</code>是<code>B</code>的父类，<code>A</code>可以使用的场景，那么<code>B</code>一定可以应用在该场景中;反之不一定成立。</p>
+<p>书上随后给出了<code>学生</code>和<code>人</code>这个基本的<code>is-a</code>关系，论证了<code>public继承</code>可以符合这个关系的实现。而后给出了“企鹅是一种鸟”，“鸟会飞”这两个基本事实，事实上应该说”鸟一般会飞“这个描述更为准确一些。用public继承描述了这样的关系:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Bird</span>{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">()</span></span>;			<span class="comment">// 鸟”一般“可以飞</span></span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Penguin</span> : <span class="keyword">public</span> Bird{	<span class="comment">// 企鹅是一种鸟</span></span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>然后就违背了“企鹅不会飞”这个事实。为了解决这个问题，鸟首先被分为了<code>可以飞</code>和<code>不会飞</code>的两个类，然后企鹅继承<code>不会飞</code>的鸟类，problem solved:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Bird</span>{</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FlyingBird</span> : <span class="keyword">public</span> Bird{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">()</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Penguin</span> : <span class="keyword">public</span> Bird{</span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>这样便开始增加了继承体系的复杂性。这个复杂性笔者认为是来自于业务，因为构造这样的继承体系需要生物分类的基本事实，除非是为了开发一个覆盖现已发现的所有生物的相关的业务系统，否则继承体系不应该100%还原生物分类体系，并且还有一些分类不清的生物也增加了设计这个继承体系的难度，解决这个复杂度笔者认为不是数据结构设计上的问题，更多的是相关业务开发人员对该业务领域的认知能力。</p>
+<p>书上给出了一个针对解决企鹅不会飞这个特例的解决方案:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">classs Penguin : <span class="keyword">public</span> Bird{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">()</span></span>{</span><br><span class="line">		<span class="keyword">throw</span> std::<span class="built_in">exception</span>(<span class="string">"Attempt to make a penguin fly!"</span>);		<span class="comment">// 原书用一个自己实现的error函数</span></span><br><span class="line">	}</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>无论是原书用自己实现的一个error函数，还是笔者自行修改的抛出异常，本质上都是运行时报错。这个对代码的使用人员太不友好，也只能算是下下策。</p>
+<p>还有办法就是取消鸟类里面的飞的函数，直到某个层次开始分类出能够飞或者不会飞的类属，这样在编译器就可以阻止使用者的错误的使用方式。但是这样问题就回到前面提到的继承体系复杂度的问题。</p>
+<p>书上继续给出了<code>矩形</code>与<code>正方形</code>的例子，贴上书上的代码:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Rectangle</span>{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">setHeight</span><span class="params">(<span class="type">int</span> newHeight)</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">setWidth</span><span class="params">(<span class="type">int</span> newWidth)</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">int</span> <span class="title">height</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">int</span> <span class="title">width</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">makeBigger</span><span class="params">(Rectangle&amp; r)</span>				<span class="comment">// 	增加r的面积</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="type">int</span> oldHeight = r.<span class="built_in">height</span>();</span><br><span class="line">	r.<span class="built_in">setWidth</span>(r.<span class="built_in">width</span>() + <span class="number">10</span>);				<span class="comment">//	增加r的宽10个单位</span></span><br><span class="line">	<span class="built_in">assert</span>(r.<span class="built_in">height</span>() == oldHeight);		<span class="comment">//	笔者不理解为什么要断言这个变化，这个约束也太严格了</span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>上述代码保证了只改变矩形的宽，利用断言确定高度不会被改变，<code>正方形</code>的出场带来了一个难题:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Square</span> : <span class="keyword">public</span> Rectangle{...};</span><br><span class="line">Square s;</span><br><span class="line">...</span><br><span class="line"><span class="built_in">assert</span>(s.<span class="built_in">width</span>() == s.<span class="built_in">height</span>())				<span class="comment">//	对正方形的正常约束检查</span></span><br><span class="line"><span class="built_in">makeBigger</span>(s);								<span class="comment">//	1.问题来了</span></span><br><span class="line"><span class="built_in">assert</span>(s.<span class="built_in">width</span>() == s.<span class="built_in">height</span>())				<span class="comment">//	对于正方形，这个约束应该成立</span></span><br></pre></td></tr></table></figure>
+<p>一个稍微认真考虑过<code>正方形</code>的设置长宽函数实现的编程人员应该会下意识的让<code>setHeight</code>和<code>setWidth</code>的行为一致，这个就会马上与<code>makeBigger</code>中的断言发生冲突。或者说忘记了正方形的性质，而导致正方形的长宽一致的断言失败。</p>
+<p>书上没有讨论是谁的错，但是笔者认为是<code>makeBigger</code>函数的不合理导致的:</p>
+<ol>
+<li>既然是改变面积的功能，从OOP角度考虑可以设计为图形的成员函数，并声明为virtual，赋予子类应对场景的能力;</li>
+<li>也是从OOP角度来考虑，“makeBigger”这个函数对功能的描述模棱两可，根据行为来看，设置为“makeWidder”更加容易让人读懂。</li>
+</ol>
+<p>所有的例子强调了<code>public继承</code>就要实现好<code>is-a</code>这个模型，使得其符合里氏替换原则，不然要么就是代码有问题，要么就是本身需要实现的模型就有问题。</p>
+<p>此外还有常见的<code>has-a</code>(有一个)以及<code>is-implemented-in-terms-of</code>(根据某物实现出)这个关系，分别在条款38和39中介绍。</p>
+<h2 id="条款33-避免遮掩继承而来的名称"><a href="#条款33-避免遮掩继承而来的名称" class="headerlink" title="条款33:避免遮掩继承而来的名称"></a>条款33:避免遮掩继承而来的名称</h2><p>该条款涉及到的知识是<code>作用域(Scopes)</code>，在介绍前面条款的时候，笔者也引用到了作用域的部分知识，贴上书上的代码作为例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> x;					<span class="comment">// 全局变量</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="type">double</span> x;			<span class="comment">// 局部变量，此时在fun整个作用域内的x都是该变量</span></span><br><span class="line">	std::cin &gt;&gt; x;		<span class="comment">// 对x进行一些操作</span></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>在经过编程训练之后，笔者会把<code>fun</code>函数内变量<code>x</code>和全局变量<code>x</code>视作不同的变量，即便它们拥有相同的名字。类比成现实的话，就是一个名字可以指的是人，也可以是狗，即便是指人，也有可能是存在多个同名的人，这时候就需要提供更多的信息来对应了。用编译原理的知识来表达的话，就是根据<code>上下文(Context)</code>来推导。</p>
+<p>至于推导的规则，一般是从当前的作用域内查找，失败就扩大作用域，直到整个上下文环境都查找失败为止。</p>
+<p>同样，用书上的例子解释该条款:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span>{</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="type">int</span> x;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">(<span class="type">int</span>)</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf2</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf3</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf3</span><span class="params">(<span class="type">double</span>)</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf3</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf4</span><span class="params">()</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>使用子类:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Derived d;</span><br><span class="line"><span class="type">int</span> x;</span><br><span class="line">...</span><br><span class="line">d.<span class="built_in">mf1</span>();		<span class="comment">// OK,使用Derived::mf1</span></span><br><span class="line">d.<span class="built_in">mf1</span>(<span class="number">1</span>);		<span class="comment">// 错误，Derived::mf1遮掩了所有的Base::mf1</span></span><br><span class="line">d.<span class="built_in">mf2</span>();		<span class="comment">// OK，Base::mf2</span></span><br><span class="line">d.<span class="built_in">mf3</span>();		<span class="comment">// OK，Derived::mf3</span></span><br><span class="line">d.<span class="built_in">mf3</span>();		<span class="comment">// 错误，Derived::mf3遮掩了所有的Base::mf3</span></span><br></pre></td></tr></table></figure>
+<p>注意两个mf1都是<code>virtual</code>的，笔者在自己做实验做验证的时候的设想是无参版本的mf1被复写了，所以能够正常调用;而带int参数的mf1则因为声明了virtual并且在Base中具有了实现，理应调用Base中的实现，然而实验结果证明了无论函数是否声明为<code>virtual</code>，只要在继承类中声明了与基类同名的函数，则基类中所有的同名函数都会被覆盖。</p>
+<p>但是笔者同时也在实验中注意到，设置如下代码通过编译:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Derived d;</span><br><span class="line"><span class="type">int</span> x = <span class="number">10</span>;</span><br><span class="line">d.<span class="built_in">mf1</span>();</span><br><span class="line">d.<span class="built_in">mf2</span>();</span><br><span class="line">d.<span class="built_in">mf3</span>();   </span><br></pre></td></tr></table></figure>
+<p>使用<code>-S</code>参数以及<code>c++filt</code>工具查看生成的汇编，则会发现编译器为以下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Base::mf1(int)</span><br><span class="line">Base::mf2()</span><br><span class="line">Derived::mf1()</span><br><span class="line">Derived::mf3()</span><br></pre></td></tr></table></figure>
+<p>这些成员函数生成了汇编码，其它成员函数因为编译器优化探测到没有使用而没有被生成。</p>
+<p>有趣的是，生成的汇编码中对代码的解释有<code>vtable</code>的描述(经过人工处理):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">vtable for Derived:</span><br><span class="line">        .quad   Derived::mf1()</span><br><span class="line">        .quad   Base::mf1(int)</span><br><span class="line">        .quad   Base::mf2()</span><br><span class="line">vtable for Base:</span><br><span class="line">        .quad   __cxa_pure_virtual	；这应该是Base::mf1()</span><br><span class="line">        .quad   Base::mf1(int)</span><br><span class="line">        .quad   Base::mf2()</span><br></pre></td></tr></table></figure>
+<p>其中<code>Derived</code>类中的<code>vtable</code>竟然存在<code>Base::mf1(int)</code>这个描述，但是在代码主体中却没有，笔者也不了解为什么会这样，但是这始终只是一个描述性的部分，决定行为的还是代码主体，鉴于笔者当前的水平也只能先挖出这个奇异点了。</p>
+<p>接着使用GDB中的<code>info fuctions</code>命令进行运行时查看各个类下的成员函数:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">void Derived::Derived();</span><br><span class="line">void Derived::mf1();</span><br><span class="line">void Derived::mf3();</span><br><span class="line"></span><br><span class="line">void Base::Base();</span><br><span class="line">void Base::mf1(int);</span><br><span class="line">void Base::mf2();</span><br></pre></td></tr></table></figure>
+<p>结果也对上了汇编码。</p>
+<p>说了这么多，解决这个问题的方法有两个，一个是:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">using</span> Base::mf1;</span><br><span class="line">	<span class="keyword">using</span> Base::mf3;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf3</span><span class="params">()</span></span>;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">mf4</span><span class="params">()</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>也就是显式声明让编译器把<code>Base</code>中被遮掩的函数在该子类中暴露，或者使用<code>转交函数(forwarding function)</code>:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span>{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">(<span class="type">int</span>)</span></span>;</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">private</span> Base{	<span class="comment">// private继承使得只有这个直系子类能够调用Base中public的部分，Derived的子类则不可以访问Base中的任何部分</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">mf1</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{							<span class="comment">// 转交函数</span></span><br><span class="line">		Base::<span class="built_in">mf1</span>();			<span class="comment">// 隐式成为了inline</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>但是在<code>Derived</code>的实例中调用<code>Base::mf1(int)</code>仍然是错误的，因为<code>遮掩</code>仍在存在。</p>
+<h2 id="条款34-区分接口继承和实现继承"><a href="#条款34-区分接口继承和实现继承" class="headerlink" title="条款34:区分接口继承和实现继承"></a>条款34:区分接口继承和实现继承</h2><p>如果读者使用过<code>Java</code>的<code>interface</code>关键字做过一些实验的话，并对<code>设计与实现分离</code>这个原则有深刻的理解的话，这个条款应该可以跳过了。不过<code>接口</code>这个概念在<code>C++</code>中也可以很简单地就模拟出来:</p>
+<ul>
+<li>所有成员都是public</li>
+<li>没有成员变量</li>
+<li>所有成员函数都是纯虚函数</li>
+</ul>
+<p>根源上来讲<code>interface</code>只是类的一种特殊情况，无非是<code>Java</code>在语法方面做了限制。正是这样的约束，提高了<code>Java程序</code>的质量下限，不需要了解为什么有<code>interface</code>关键字，只知道<code>Java</code>可以单继承，多实现的语法就行了。顺带一提，<code>Java 8</code>开始也支持接口中的方法写<code>缺省实现</code>了。</p>
+<p>关于该条款，笔者认为书上的飞机例子就够用了:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Airport</span></span><br><span class="line">{...};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Airplane</span>{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span> </span>= <span class="number">0</span>;	<span class="comment">// 不提供fly的缺省实现，防止编译器让子类自动继承实现</span></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">defaultFly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span>;		<span class="comment">// 假如子类的fly用的缺省方式，则子类的fly实现显式调用该函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Airplane::defaultFly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="comment">// 飞机飞向目的地的缺省行为</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModelA</span> : <span class="keyword">public</span> Airplane</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="built_in">defaultFly</span>(destination);	<span class="comment">// 缺省飞行方式</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModelB</span> : <span class="keyword">public</span> Airplane</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="built_in">defaultFly</span>(destination);	<span class="comment">// 缺省飞行方式</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModelC</span> : <span class="keyword">public</span> Airplane</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="comment">// 该型号有别的飞行方式</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>如果还是想懒又优雅，可以继续给纯虚函数提供缺省实现:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Airport</span></span><br><span class="line">{...};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Airplane</span>{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span> </span>= <span class="number">0</span>;	<span class="comment">// 提供fly的缺省实现，子类则需要在不使用缺省方式时显式提供自身的实现</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Airplane::fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="comment">// 飞机飞向目的地的缺省行为</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModelA</span> : <span class="keyword">public</span> Airplane</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		Airplane::<span class="built_in">fly</span>(destination);	<span class="comment">// 缺省飞行方式</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModelB</span> : <span class="keyword">public</span> Airplane</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		Airplane::<span class="built_in">fly</span>(destination);	<span class="comment">// 缺省飞行方式</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModelC</span> : <span class="keyword">public</span> Airplane</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fly</span><span class="params">(<span class="type">const</span> Airport&amp; destination)</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="comment">// 该型号有别的飞行方式</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>这些例子呈现<code>设计与实现分离</code>这个原则不够明显，更体现不出其威力。事实上这个原则有点<code>解耦</code>的意味，如果读者有接触过<code>Java</code>项目开发的话，应该很熟悉动不动就一个<code>interface</code>和一个对应的缺省实现。例如项目中的某个实现发现了可以性能改进的地方，但是不需要改进接口，如果接口和实现放在一起的话，那么意味着这个类需要整个编译一遍;如果采用了接口实现分离，只需要重新编译发生改动的类就可以了。极端一些，假设大片实现都需要更新，而接口不需要更改，这时候编译量的差就很客观了。</p>
+<p>笔者入门时也不是太理解这个条款，这里只是提供一个原则，需要经过实践才能体验到这样做带来的好处。</p>
+<p>这个条款主要是让读者能够区分<code>接口继承</code>以及<code>实现继承</code>，读者可以结合<code>Java</code>的<code>interface</code>理解。</p>
+<h2 id="条款35-考虑virtual函数以外的其他选择"><a href="#条款35-考虑virtual函数以外的其他选择" class="headerlink" title="条款35:考虑virtual函数以外的其他选择"></a>条款35:考虑virtual函数以外的其他选择</h2><p>该条款涉及到:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Template_method_pattern">Template Method</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Strategy_pattern">Strategy</a></li>
+</ul>
+<p>这两个<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Software_design_pattern">设计模式</a>，这跟软件开发的范畴十分相关，而且看起来十分相像，不过区分一下<code>模板方法</code>是由外部来决定一个具体的实现;而<code>策略</code>更多的是由<code>对象自身的状态</code>来决定使用什么实现，<a target="_blank" rel="noopener" href="https://www.wikipedia.org/">wiki</a>上给了中国和美国交税的方法不同，笔者根据自身理解写一个例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Template Method设计模式样例</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tax</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">double</span> <span class="title">payTax</span><span class="params">()</span> </span>= <span class="number">0</span>;	<span class="comment">// 声明template method</span></span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ChnTax</span> : <span class="keyword">class</span> <span class="title class_">Tax</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">double</span> <span class="title">payTax</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="comment">// 一些具体的代码</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UsaTax</span> : <span class="keyword">class</span> <span class="title class_">Tax</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">double</span> <span class="title">payTax</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="comment">// 一些具体的代码</span></span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用样例，由外部来决定使用什么实现</span></span><br><span class="line">Tax tax = <span class="keyword">new</span> <span class="built_in">ChnTax</span>();</span><br><span class="line"></span><br><span class="line">tax.<span class="built_in">payTax</span>();				<span class="comment">// 交中国税</span></span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">// tax = new UsaTax();</span></span><br><span class="line"></span><br><span class="line">tax.<span class="built_in">payTax</span>();				<span class="comment">// 交美国税</span></span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>对比<code>策略模式</code>模式的构想:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Tax</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">enum</span> <span class="title class_">Country</span>{CHN, USA, ...};	<span class="comment">// 对象所处的状态由具体的环境决定，在这个例子里面的状态就是所处国家</span></span><br><span class="line">	</span><br><span class="line">	<span class="built_in">Tax</span>(Country ct) : <span class="built_in">country</span>(ct){}	<span class="comment">// 对象在被实例化时就应该赋予状态，或者专门设定一个状态变化的函数</span></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">payTax</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="keyword">if</span>(country == Country::CHN)	<span class="comment">// 根据对象的状态采用对应的实现</span></span><br><span class="line">		{</span><br><span class="line">			<span class="built_in">chnPayTax</span>();</span><br><span class="line">		}</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span>(country == Country::USA)</span><br><span class="line">		{</span><br><span class="line">			<span class="built_in">usaPayTax</span>();</span><br><span class="line">		}</span><br><span class="line">		...</span><br><span class="line">	}</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">chnPayTax</span><span class="params">()</span>				<span class="comment">// 这些实现声明为私有</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="comment">// 具体的代码</span></span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">usaPayTax</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="comment">// 具体的代码</span></span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	Country country;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用样例，外部赋予对象初始状态，或者对象自身就有状态</span></span><br><span class="line"></span><br><span class="line">Tax tax = <span class="keyword">new</span> <span class="built_in">Tax</span>(Tax::Country::CHN);		<span class="comment">// 中国对象实例</span></span><br><span class="line"></span><br><span class="line">tax.<span class="built_in">payTax</span>();							<span class="comment">// 内部已经有了状态，根据自身状态调用对应的策略</span></span><br><span class="line"></span><br><span class="line">... </span><br><span class="line"></span><br><span class="line">tax = <span class="keyword">new</span> <span class="built_in">Tax</span>(Tax::Country::USA);		<span class="comment">// 或者是一个美国状态实例</span></span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>这是两种设计模式的介绍，书中给出的例子虽然跟笔者自己写的例子不是很相像，但是其核心思想是一样的。这也是初学者到进阶的其中一步，也就是遵循某种思想设计出具体的算法，比根据算法的抽象描述或者伪代码实现需要有更加进阶的编程能力要求。</p>
+<p>但是笔者经过再读这个模板方法的例子，结合后文的修改:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">GameCharacter</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">int</span> <span class="title">healthValue</span><span class="params">()</span> <span class="type">const</span>				<span class="comment">// 该类子类不重新定义这个函数</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		...</span><br><span class="line">		<span class="type">int</span> retVal = <span class="built_in">doHealthValue</span>();	<span class="comment">// 调用实际的实现版本</span></span><br><span class="line">		...</span><br><span class="line">		<span class="keyword">return</span> retValue;</span><br><span class="line">	}</span><br><span class="line">	...</span><br><span class="line"><span class="keyword">protected</span>:					<span class="comment">// 最初是private，但是为了让子类能够正确感知到这个实际的实现并可以重新定义，protected比较合理</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">int</span> <span class="title">doHealthValue</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		...			<span class="comment">// 缺省的实现</span></span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">};</span><br></pre></td></tr></table></figure>
+<p>笔者认为，这样做是把<code>模板方法</code>实现，使得调用的接口固定，对使用者友好，这样使用者就可以认为这样的方法只有一个，而不需要考虑多态的问题(虽然内部实现依靠了多态);而对于实现提供者，只需要处理实际实现的函数即可，而不需要关注接口的问题。</p>
+<p>而接下来用<code>策略注入</code>(该名词为笔者根据)的方法实现<code>策略模式</code>。书上第一版的实现用的函数指针，这样的话就无法处理有参数变化的策略函数了，例如书上的:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">typdef <span class="title">int</span><span class="params">(*HealthCalcFunc)</span><span class="params">(<span class="type">const</span> GameCharacter)</span></span>;</span><br><span class="line"></span><br><span class="line">GameCharacter::<span class="built_in">GameCharacter</span>(HealthCalcFunc* hcf = defaultHealthFunc) : <span class="built_in">healthFunc</span>(hcf);</span><br><span class="line">{}</span><br></pre></td></tr></table></figure>
+<p>若日后计算的方法发生了改变使得这个计算函数的接口发生了变化，那么接收<code>策略</code>的构造器也会跟着出问题。在作者那个时期还没有<code>C++11</code>，所以作者用的<code>boost::tr1</code>，采用了<code>tr1::function</code>代替<code>函数指针</code>类型，而且可以使用<code>bind</code>解决上述提及的接口变化问题。</p>
+<p>书上的例子比较复杂，也比较难直接看出是策略模式的一种实现，笔者还是用上面计算税的例子:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Tax</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	std::function&lt;<span class="type">double</span>()&gt; CalculateTaxFun;		<span class="comment">// 声明没有参数，返回为double的函数类型</span></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">explicit</span> <span class="title">Tax</span><span class="params">(CalculateTaxFun calcFun)</span> : calcStrategy(calcFun){</span>}	<span class="comment">// 构造器接受计算税的策略</span></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">payTax</span><span class="params">()</span>			<span class="comment">// 交税函数，不过在这个例子的用处是调用注入的计算税的策略</span></span></span><br><span class="line"><span class="function">	</span>{</span><br><span class="line">		<span class="type">double</span> taxVal = <span class="built_in">calcStrategy</span>();		<span class="comment">// 调用注入进来的计算税的策略获得应缴税的值</span></span><br><span class="line">		...					<span class="comment">// 处理税务</span></span><br><span class="line">	}</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line"></span><br><span class="line">	CalculateTaxFun calcStrategy;			<span class="comment">// CalculateTaxFun的实例</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="keyword">enum</span> <span class="title class_">State</span>{CHN, USA, ...};			<span class="comment">// 状态，其实是上个例子的国家</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">double</span> <span class="title">calculateTax</span><span class="params">(State state)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	<span class="type">double</span> taxVal;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(state == State::CHN)</span><br><span class="line">	{</span><br><span class="line">		...						<span class="comment">// 在中国，按照基本法算稅</span></span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span>(state == State::USA)</span><br><span class="line">	{</span><br><span class="line">		...						<span class="comment">// 美国</span></span><br><span class="line">	}</span><br><span class="line">	...							<span class="comment">// 其他情况</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> taxVal;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">....</span><br><span class="line"><span class="comment">// 使用样例，这时候策略的决定交由外部</span></span><br><span class="line"><span class="function">Tax::CalculateTaxFun <span class="title">taxCalc</span><span class="params">(std::bind(calcStrategy, State::CHN, std::placeholders::_1))</span></span>;	<span class="comment">// 定义一个中国计算税的策略</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 上述的过程就是，用std::bind把calcStrategy这个函数的第一个参数绑定为State::CHN，</span></span><br><span class="line"><span class="comment"> * 返回一个std::function&lt;double()&gt;的实例用于初始化一个策略</span></span><br><span class="line"><span class="comment"> * 注意即便声明了using namespace std::placeholders,直接用_1也会直接出错，</span></span><br><span class="line"><span class="comment"> * 所以只能打全称</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">Tax <span class="title">tax</span><span class="params">(taxCalc)</span></span>;		<span class="comment">// 将计算税的策略注入到税实例中</span></span><br><span class="line"></span><br><span class="line">tax.<span class="built_in">payTax</span>();			<span class="comment">// 交税，计算税的策略已经在里面了</span></span><br><span class="line"></span><br><span class="line"><span class="function">Tax::CalculateTaxFun <span class="title">usaTaxCalc</span><span class="params">(std::bind(calcStrategy, State::USA, std::placeholders::_1))</span></span>; <span class="comment">// 美国的计算税策略</span></span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>上面的例子讲述了用<code>std::function</code>实现的策略模式，读者可以细读上个例子，理解策略模式的思想(上面例子没有体现出对象根据自身状态选择策略，而是交给了外部)，以及这个模式的一般实现。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cfwloader.github.io/2018/01/04/Effective-C-%E5%85%AB/" data-id="clximfz6k000g7kkv3zkf7drx" data-title="Effective C++(八)" class="article-share-link"><span class="fa fa-share">Teilen</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/15/Effective-C-%E4%B9%9D/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Effective C++(九)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/12/21/Effective-C-%E4%B8%83/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Effective C++(七)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Kategorien</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/C-%E6%8A%80%E6%9C%AF/">C++技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%8A%80%E6%9C%AF/">Java技术</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/">数据挖掘</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">网络通信</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" rel="tag">Anderson Darling检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Apache/" rel="tag">Apache</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C-11/" rel="tag">C++11</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C4-5/" rel="tag">C4.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Effective-C/" rel="tag">Effective C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Fedora-25/" rel="tag">Fedora 25</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GUI/" rel="tag">GUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gems/" rel="tag">Gems</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Github/" rel="tag">Github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ID3/" rel="tag">ID3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaFX/" rel="tag">JavaFX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Keras/" rel="tag">Keras</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" rel="tag">Kolmogorov Smirnov检验</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%91%BD%E4%BB%A4/" rel="tag">Linux命令</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Logsitic%E5%88%86%E5%B8%83/" rel="tag">Logsitic分布</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MathJax/" rel="tag">MathJax</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL/" rel="tag">RHEL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RHEL-7-5/" rel="tag">RHEL 7.5</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RailsInstaller/" rel="tag">RailsInstaller</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Sublime-Text-3/" rel="tag">Sublime Text 3</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/" rel="tag">TCP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tomcat/" rel="tag">Tomcat</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/VC%E7%BB%B4/" rel="tag">VC维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZCA/" rel="tag">ZCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/fxml/" rel="tag">fxml</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gdb/" rel="tag">gdb</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k%E8%BF%91%E9%82%BB/" rel="tag">k近邻</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" rel="tag">信息增益</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" rel="tag">信息增益比</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" rel="tag">分类树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" rel="tag">动态加载模块</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" rel="tag">卷积层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" rel="tag">坐标变换</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">多层感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" rel="tag">工具配置</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" rel="tag">径向基网络</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" rel="tag">循环层</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" rel="tag">感知机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" rel="tag">技巧方法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" rel="tag">数学基础</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" rel="tag">数据挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" rel="tag">核函数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" rel="tag">概率模型</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" rel="tag">特征分解</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9F%A9%E9%98%B5/" rel="tag">矩阵</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" rel="tag">算法实现</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" rel="tag">系统调用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" rel="tag">系统运维</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" rel="tag">线性代数</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">练习笔记</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" rel="tag">统计学</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" rel="tag">统计理论</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" rel="tag">网络通信</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" rel="tag">解析几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" rel="tag">频繁模式挖掘</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" rel="tag">高等数学</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Anderson-Darling%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Anderson Darling检验</a> <a href="/tags/Apache/" style="font-size: 10px;">Apache</a> <a href="/tags/C/" style="font-size: 11.43px;">C</a> <a href="/tags/C/" style="font-size: 20px;">C++</a> <a href="/tags/C-11/" style="font-size: 18.57px;">C++11</a> <a href="/tags/C4-5/" style="font-size: 10px;">C4.5</a> <a href="/tags/Effective-C/" style="font-size: 18.57px;">Effective C++</a> <a href="/tags/Fedora-25/" style="font-size: 12.86px;">Fedora 25</a> <a href="/tags/GUI/" style="font-size: 10px;">GUI</a> <a href="/tags/Gems/" style="font-size: 10px;">Gems</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/Github/" style="font-size: 10px;">Github</a> <a href="/tags/Hadoop/" style="font-size: 10px;">Hadoop</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/ID3/" style="font-size: 10px;">ID3</a> <a href="/tags/Java/" style="font-size: 11.43px;">Java</a> <a href="/tags/JavaFX/" style="font-size: 10px;">JavaFX</a> <a href="/tags/Keras/" style="font-size: 11.43px;">Keras</a> <a href="/tags/Kolmogorov-Smirnov%E6%A3%80%E9%AA%8C/" style="font-size: 10px;">Kolmogorov Smirnov检验</a> <a href="/tags/Linux/" style="font-size: 15.71px;">Linux</a> <a href="/tags/Linux%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">Linux命令</a> <a href="/tags/Logsitic%E5%88%86%E5%B8%83/" style="font-size: 10px;">Logsitic分布</a> <a href="/tags/Markdown/" style="font-size: 10px;">Markdown</a> <a href="/tags/MathJax/" style="font-size: 10px;">MathJax</a> <a href="/tags/R/" style="font-size: 17.14px;">R</a> <a href="/tags/RHEL/" style="font-size: 10px;">RHEL</a> <a href="/tags/RHEL-7-5/" style="font-size: 10px;">RHEL 7.5</a> <a href="/tags/RailsInstaller/" style="font-size: 10px;">RailsInstaller</a> <a href="/tags/Ruby/" style="font-size: 10px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 10px;">Scala</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Sublime-Text-3/" style="font-size: 10px;">Sublime Text 3</a> <a href="/tags/TCP/" style="font-size: 11.43px;">TCP</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/VC%E7%BB%B4/" style="font-size: 10px;">VC维</a> <a href="/tags/Windows/" style="font-size: 11.43px;">Windows</a> <a href="/tags/ZCA/" style="font-size: 10px;">ZCA</a> <a href="/tags/fxml/" style="font-size: 10px;">fxml</a> <a href="/tags/gdb/" style="font-size: 10px;">gdb</a> <a href="/tags/github/" style="font-size: 10px;">github</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/k%E8%BF%91%E9%82%BB/" style="font-size: 10px;">k近邻</a> <a href="/tags/python/" style="font-size: 12.86px;">python</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A/" style="font-size: 10px;">信息增益</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A%E6%AF%94/" style="font-size: 10px;">信息增益比</a> <a href="/tags/%E5%88%86%E7%B1%BB%E6%A0%91/" style="font-size: 10px;">分类树</a> <a href="/tags/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9D%97/" style="font-size: 10px;">动态加载模块</a> <a href="/tags/%E5%8D%B7%E7%A7%AF%E5%B1%82/" style="font-size: 10px;">卷积层</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 10px;">坐标变换</a> <a href="/tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 12.86px;">多层感知机</a> <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 11.43px;">学习笔记</a> <a href="/tags/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/" style="font-size: 12.86px;">工具配置</a> <a href="/tags/%E5%BE%84%E5%90%91%E5%9F%BA%E7%BD%91%E7%BB%9C/" style="font-size: 10px;">径向基网络</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%B1%82/" style="font-size: 10px;">循环层</a> <a href="/tags/%E6%84%9F%E7%9F%A5%E6%9C%BA/" style="font-size: 10px;">感知机</a> <a href="/tags/%E6%8A%80%E5%B7%A7%E6%96%B9%E6%B3%95/" style="font-size: 10px;">技巧方法</a> <a href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" style="font-size: 10px;">支持向量机</a> <a href="/tags/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" style="font-size: 12.86px;">数学基础</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">数据挖掘</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.57px;">机器学习</a> <a href="/tags/%E6%A0%B8%E5%87%BD%E6%95%B0/" style="font-size: 10px;">核函数</a> <a href="/tags/%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">概率模型</a> <a href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" style="font-size: 10px;">概率论</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" style="font-size: 11.43px;">深度学习</a> <a href="/tags/%E7%89%B9%E5%BE%81%E5%88%86%E8%A7%A3/" style="font-size: 11.43px;">特征分解</a> <a href="/tags/%E7%9F%A9%E9%98%B5/" style="font-size: 10px;">矩阵</a> <a href="/tags/%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" style="font-size: 12.86px;">算法实现</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" style="font-size: 10px;">系统调用</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">系统运维</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 14.29px;">线性代数</a> <a href="/tags/%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0/" style="font-size: 17.14px;">练习笔记</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E5%AD%A6/" style="font-size: 11.43px;">统计学</a> <a href="/tags/%E7%BB%9F%E8%AE%A1%E7%90%86%E8%AE%BA/" style="font-size: 10px;">统计理论</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/" style="font-size: 10px;">网络通信</a> <a href="/tags/%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/" style="font-size: 10px;">解析几何</a> <a href="/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/" style="font-size: 12.86px;">频繁模式挖掘</a> <a href="/tags/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6/" style="font-size: 10px;">高等数学</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/07/05/Git%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">Git问题汇总</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/10/%E9%80%BB%E8%BE%91%E6%96%AF%E8%B0%9B%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B/">逻辑斯谛回归模型</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/17/%E5%86%B3%E7%AD%96%E6%A0%91%E4%B9%8BID3%E4%B8%8EC4-5/">决策树之ID3与C4.5</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/12/Spark%E9%85%8D%E7%BD%AE%E7%AC%94%E8%AE%B0/">Spark配置笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/14/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BB%83%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B9%9D/">机器学习练习笔记(九)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Evan Huang<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
